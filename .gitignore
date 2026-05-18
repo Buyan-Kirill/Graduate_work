@@ -5,19 +5,25 @@ __pycache__/
 
 datasets/
 
-*.pth
-*.pt
-*.ckpt
+.ipynb_checkpoints/
+.env
 *.tar
 *.tar.xz
 *.zip
 
-.ipynb_checkpoints/
-.env
+# Model weights and checkpoints
+*.pth
+*.pt
+*.ckpt
 
-experiments/**/middle_logs/
+# Ignore large generated visualization folders.
+experiments/**/middle_logs/visualization/
 experiments/**/visualization/
 experiments/**/visualizations/
 experiments/**/anomaly_visualization/
 experiments/**/normal_validation_visualization/
 experiments/**/final_eval*/visualizations/
+
+# Visual examples selected for Git.
+!experiments/**/visual_tests/
+!experiments/**/visual_tests/**

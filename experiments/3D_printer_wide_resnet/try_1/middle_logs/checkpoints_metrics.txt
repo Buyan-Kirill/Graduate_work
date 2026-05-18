@@ -1,0 +1,120 @@
+Epoch 1:
+Train_Loss: -81418.540257
+Val_Loss: -535150.082455
+
+Epoch 2:
+Train_Loss: -724528.898508
+Val_Loss: -868558.462349
+
+Epoch 3:
+Train_Loss: -1002960.817409
+Val_Loss: -1096072.846386
+
+Epoch 4:
+Train_Loss: -1159083.237160
+Val_Loss: -1184508.375753
+
+Epoch 5:
+Train_Loss: -1267134.682779
+Val_Loss: -1294583.432982
+
+Epoch 6:
+Train_Loss: -1338760.379909
+Val_Loss: -1352798.277108
+
+Epoch 7:
+Train_Loss: -1390886.025869
+Val_Loss: -1390081.539157
+
+Epoch 8:
+Train_Loss: -1429698.048527
+Val_Loss: -1427420.277108
+
+Epoch 9:
+Train_Loss: -1461429.903323
+Val_Loss: -1457240.405120
+
+Epoch 10:
+Train_Loss: -1477436.455060
+Val_Loss: -1470686.358434
+
+Epoch 11:
+Train_Loss: -1485700.489048
+Val_Loss: -1475779.905120
+
+Epoch 12:
+Train_Loss: -1490880.631798
+Val_Loss: -1479342.031627
+
+Epoch 13:
+Train_Loss: -1490885.535121
+Val_Loss: -1477355.480422
+
+Epoch 14:
+Train_Loss: -1492375.324773
+Val_Loss: -1481302.433735
+
+Epoch 15:
+Train_Loss: -1494863.895770
+Val_Loss: -1487165.125000
+
+Epoch 16:
+Train_Loss: -1501130.819486
+Val_Loss: -1475007.498494
+
+Epoch 17:
+Train_Loss: -1503779.703927
+Val_Loss: -1520686.335843
+
+Epoch 18:
+Train_Loss: -1514853.702039
+Val_Loss: -1506929.635542
+
+Epoch 19:
+Train_Loss: -1536493.275680
+Val_Loss: -1538800.481928
+
+Epoch 20:
+Train_Loss: -1555682.412764
+Val_Loss: -1568195.938253
+
+Epoch 21:
+Train_Loss: -1432401.131798
+Val_Loss: -1451735.628012
+
+Epoch 22:
+Train_Loss: -1525446.953550
+Val_Loss: -1552002.242470
+
+Epoch 23:
+Train_Loss: -1592254.331571
+Val_Loss: -1605773.134036
+
+Epoch 24:
+Train_Loss: -1623995.467145
+Val_Loss: -1637915.969880
+
+Epoch 25:
+Train_Loss: -1658392.514728
+Val_Loss: -1648326.188253
+
+Epoch 26:
+Train_Loss: -1681489.923338
+Val_Loss: -1679396.891566
+
+Epoch 27:
+Train_Loss: -1696952.200906
+Val_Loss: -1691839.861446
+
+Epoch 28:
+Train_Loss: -1709566.986405
+Val_Loss: -1701985.317771
+
+Epoch 29:
+Train_Loss: -1714777.004532
+Val_Loss: -1702304.237952
+
+Epoch 30:
+Train_Loss: -1716492.853097
+Val_Loss: -1704270.111446
+
