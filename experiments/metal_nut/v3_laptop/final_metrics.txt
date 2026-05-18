@@ -1,0 +1,5 @@
+Train_Loss: 0.25342282546418055
+Validation_Loss: 0.2551968598907644
+Avg_Precision: 0.7305908203125
+Pixels_ROC_AUC: 0.984237551689148
+Classification_ROC_AUC: 1.0

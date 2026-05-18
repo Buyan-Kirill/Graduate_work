@@ -1,0 +1,12 @@
+{
+  "image_roc_auc_raw": 0.9959239130434783,
+  "image_avg_precision_raw": 0.9985817837303981,
+  "image_roc_auc_sigmoid": 0.9959239130434783,
+  "image_avg_precision_sigmoid": 0.9985817837303981,
+  "pixel_roc_auc": 0.9803309016962684,
+  "pixel_avg_precision": 0.5096283564776224,
+  "pixel_aupro": 0.9317749738693237,
+  "num_images": 62,
+  "num_good": 16,
+  "num_anomaly": 46
+}

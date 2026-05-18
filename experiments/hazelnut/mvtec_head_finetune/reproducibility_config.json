@@ -1,0 +1,9 @@
+{
+  "random_seed": 42,
+  "python_hash_seed": "42",
+  "cudnn_benchmark": true,
+  "cudnn_deterministic": false,
+  "torch_version": "2.7.1+cu128",
+  "cuda_available": true,
+  "cuda_device": "NVIDIA GeForce RTX 3070 Ti Laptop GPU"
+}

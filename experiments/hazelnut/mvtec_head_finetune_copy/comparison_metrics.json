@@ -1,0 +1,35 @@
+[
+  {
+    "run_name": "before_head_finetune",
+    "image_roc_auc_raw": 0.9823369565217391,
+    "delta_image_roc_auc_raw": 0.0,
+    "image_avg_precision_raw": 0.9941805813234383,
+    "delta_image_avg_precision_raw": 0.0,
+    "pixel_roc_auc": 0.9799550304317496,
+    "delta_pixel_roc_auc": 0.0,
+    "pixel_avg_precision": 0.5119630854169172,
+    "delta_pixel_avg_precision": 0.0
+  },
+  {
+    "run_name": "after_classification_head_finetune",
+    "image_roc_auc_raw": 1.0,
+    "delta_image_roc_auc_raw": 0.017663043478260865,
+    "image_avg_precision_raw": 0.9999999999999999,
+    "delta_image_avg_precision_raw": 0.00581941867656155,
+    "pixel_roc_auc": 0.9799550304317496,
+    "delta_pixel_roc_auc": 0.0,
+    "pixel_avg_precision": 0.5119630854169172,
+    "delta_pixel_avg_precision": 0.0
+  },
+  {
+    "run_name": "after_segdec_mask_finetune",
+    "image_roc_auc_raw": 0.9972826086956522,
+    "delta_image_roc_auc_raw": 0.014945652173913082,
+    "image_avg_precision_raw": 0.9990942028985506,
+    "delta_image_avg_precision_raw": 0.004913621575112215,
+    "pixel_roc_auc": 0.9893924705150515,
+    "delta_pixel_roc_auc": 0.00943744008330194,
+    "pixel_avg_precision": 0.7592433526399905,
+    "delta_pixel_avg_precision": 0.2472802672230734
+  }
+]
