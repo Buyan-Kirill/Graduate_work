@@ -1,0 +1,78 @@
+Epocha 4:
+Train_Loss: 1.0629350498318673
+Validation_Loss: 0.8223240878432989
+pixel_aupro: 0.5343220233917236
+image_roc_auc_raw: 0.5625
+
+Epocha 8:
+Train_Loss: 0.9775357872247696
+Validation_Loss: 0.8164676800370216
+pixel_aupro: 0.7348589301109314
+image_roc_auc_raw: 0.5803571428571428
+
+Epocha 12:
+Train_Loss: 0.8702030658721924
+Validation_Loss: 0.8726923419162631
+pixel_aupro: 0.7412712574005127
+image_roc_auc_raw: 0.7053571428571428
+
+Epocha 16:
+Train_Loss: 0.7906121075153351
+Validation_Loss: 0.9174378849565983
+pixel_aupro: 0.8973057866096497
+image_roc_auc_raw: 0.9583333333333334
+
+Epocha 20:
+Train_Loss: 0.6401133015751839
+Validation_Loss: 0.6414044853299856
+pixel_aupro: 0.8069183826446533
+image_roc_auc_raw: 0.9732142857142857
+
+Epocha 24:
+Train_Loss: 0.5329736024141312
+Validation_Loss: 0.4099994758144021
+pixel_aupro: 0.9107168316841125
+image_roc_auc_raw: 0.9821428571428572
+
+Epocha 28:
+Train_Loss: 0.3503744453191757
+Validation_Loss: 0.369177735876292
+pixel_aupro: 0.9048185348510742
+image_roc_auc_raw: 0.9851190476190477
+
+Epocha 32:
+Train_Loss: 0.24338603913784027
+Validation_Loss: 0.37125594168901443
+pixel_aupro: 0.9199917912483215
+image_roc_auc_raw: 1.0
+
+Epocha 36:
+Train_Loss: 0.2014276549220085
+Validation_Loss: 0.28789410274475813
+pixel_aupro: 0.9202300310134888
+image_roc_auc_raw: 0.9434523809523809
+
+Epocha 40:
+Train_Loss: 0.136104972101748
+Validation_Loss: 0.11982815421652049
+pixel_aupro: 0.9378716349601746
+image_roc_auc_raw: 0.9970238095238095
+
+Epocha 44:
+Train_Loss: 0.08551226612180471
+Validation_Loss: 0.06854729453334585
+pixel_aupro: 0.8817694187164307
+image_roc_auc_raw: 0.9226190476190476
+
+Epocha 48:
+Train_Loss: 0.08250545859336852
+Validation_Loss: 0.05597237544134259
+pixel_aupro: 0.8779849410057068
+image_roc_auc_raw: 1.0
+
+Epocha 52:
+Train_Loss: 0.07139001404866577
+Validation_Loss: 0.08011504192836583
+pixel_aupro: 0.9290725588798523
+image_roc_auc_raw: 1.0
+

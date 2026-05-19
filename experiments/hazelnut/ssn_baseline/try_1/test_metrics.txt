@@ -1,0 +1,2 @@
+image_roc_auc_raw: 0.94140625
+pixel_aupro: 0.8755277991294861
