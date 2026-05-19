@@ -18,3 +18,11 @@
 - `middle_logs/` - чекпоинты, промежуточные метрики, визуализации по эпохам.
 - `trained_model*.pth` - сохраненные модели/веса.
 - `*.png` - графики loss/metrics и примеры карт аномалий.
+
+
+## Current SSN evaluation logic
+
+- MVTec SSN runs use a clean normal `train/val` split for synthetic `Validation_Loss`.
+- Labeled segmentation/classification data, when available, is split separately into metric `val/test` sets.
+- Missing labeled tasks can fall back to synthetic metrics from held-out normal images; these must be named `synthetic_*` and treated as diagnostics, not real benchmark metrics.
+- Final reports may include per-defect metrics and one-per-class visualizations; epoch logs stay compact with only aggregate metrics.

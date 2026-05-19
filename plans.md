@@ -135,6 +135,31 @@ Interpretation:
 - If seen types improve but held-out types degrade, the method is overfitting to defect morphology.
 - If image metrics improve but pixel metrics drop, the classification branch is adapting but localization is being damaged.
 
+## Experiment C: synthetic segmentation metric as a proxy
+
+Goal: estimate whether segmentation quality on synthetic anomalies is a useful proxy for segmentation quality on real anomalies.
+
+Motivation: in weak-supervised settings real anomaly masks may be unavailable, so real segmentation quality can only be inspected visually. A synthetic segmentation benchmark built from held-out normal images and generated masks could still be useful as a training diagnostic, early-stopping fallback, or regression check.
+
+Protocol:
+
+- split normal images into `normal_train`, `normal_val`, and `normal_synthetic_test`;
+- train only on `normal_train`;
+- evaluate synthetic segmentation metrics on `normal_val` and `normal_synthetic_test`;
+- when real masks are available for a reference dataset, also evaluate real `pixel_aupro`, pixel ROC AUC, and pixel AP on the real validation/test split;
+- log both metric families after each epoch or checkpoint.
+
+Analysis:
+
+- compare synthetic segmentation metrics against real mask metrics across epochs;
+- compute rank/linear correlation between synthetic metrics and real metrics;
+- check whether the epoch selected by synthetic metrics is close to the epoch selected by real mask metrics;
+- inspect failure cases where synthetic quality improves while real anomaly localization gets worse.
+
+Important naming rule: synthetic metrics must be named explicitly, for example `synthetic_pixel_aupro`, `synthetic_pixel_roc_auc`, `synthetic_pixel_ap`, to avoid confusing them with real MVTec-style mask metrics.
+
+Success criterion: synthetic metrics do not need to match real metrics exactly, but they should preserve useful ordering across checkpoints. If they correlate poorly, keep them only as a sanity/regression diagnostic, not as an early-stopping target.
+
 ## Suggested implementation order
 
 1. Add per-defect metric aggregation to the current evaluation if it is not present yet.
@@ -146,6 +171,7 @@ Interpretation:
    - synthetic SSNLoss weight: `0.5`, `1.0`.
 4. Only after A3 works, compare A1 and A2. They require more changes to the base training loop.
 5. Run B1/B2 using the best A variant.
+6. Run Experiment C on a dataset where real masks exist, then decide whether synthetic segmentation metrics are reliable enough for weak-supervised runs without masks.
 
 ## Loss design notes
 

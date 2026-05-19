@@ -1,0 +1,6 @@
+Train_Loss: 0.21967931671275032
+Validation_Loss: 0.3002230763435364
+pixel_aupro: 0.8869991898536682
+image_roc_auc_raw: 1.0
+best_epoch: 69
+best_Validation_Loss: 0.2900182485580444
