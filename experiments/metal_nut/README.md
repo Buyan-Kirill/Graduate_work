@@ -11,6 +11,13 @@ MVTec `metal_nut`: ранняя проверка SuperSimpleNet, scheduler и к
 Лучшие сохраненные результаты: `v3` и `v3_laptop`, оба с `Classification_ROC_AUC = 1.0`.
 
 
-## try_6
+## ssn_baseline
 
 - Run with updated `code/SuperSimpleNet_mvtec.ipynb`: normal train/val for synthetic val loss, labeled val/test metrics, synthetic fallback for missing labels, final per-class metrics, and one-per-class visualizations.
+
+## ssn_unsupervised_proxy_compare
+
+- Notebook: `code/SuperSimpleNet_mvtec_unsupervised_compare.ipynb`.
+- Purpose: compare fully unsupervised synthetic validation/test metrics against real labeled reference metrics.
+- Split: 1 normal train dataset; validation and test each have synthetic segmentation, synthetic classification, real segmentation reference, and real classification reference.
+- Important for future printer-part runs without masks: real labels are reference-only here; early stopping stays on unsupervised `Validation_Loss`.
