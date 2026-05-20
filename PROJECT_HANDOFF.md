@@ -36,8 +36,9 @@ Latest addition:
 
 - New notebook: `code/SuperSimpleNet_mvtec_unsupervised_compare.ipynb`.
 - Output folder: `experiments/metal_nut/ssn_unsupervised_proxy_compare/try_1`.
-- Dataset setup: one normal train subset; validation and test each have synthetic segmentation, synthetic classification, real segmentation reference, and real classification reference.
-- Early stopping remains unsupervised on `Validation_Loss`; real labels/masks are used only for reference comparison and final per-defect reporting.
+- Dataset setup: one normal train subset; validation and test each have fixed synthetic segmentation/classification references plus real segmentation/classification references.
+- Synthetic references are generated once before training as fixed SSN synthetic masks/labels. During validation/test those fixed masks are reused through the current model path (`feature_extractor -> adaptor -> anomaly_generator -> segdec`), following the training-path notes from `code/ssn_calculator.ipynb`.
+- Early stopping remains unsupervised on `Validation_Loss`; in this notebook it uses the fixed synthetic validation reference. Real labels/masks are used only for reference comparison and final per-defect reporting.
 - Final outputs include `test_metrics.txt`, `test_metric_comparison.csv`, real/synthetic validation visualizations, and real/synthetic test visualizations.
 
 Known current git status at time of this handoff: `experiments/metal_nut/README.md` is modified.

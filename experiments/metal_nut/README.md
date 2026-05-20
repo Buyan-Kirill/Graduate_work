@@ -19,5 +19,6 @@ MVTec `metal_nut`: ранняя проверка SuperSimpleNet, scheduler и к
 
 - Notebook: `code/SuperSimpleNet_mvtec_unsupervised_compare.ipynb`.
 - Purpose: compare fully unsupervised synthetic validation/test metrics against real labeled reference metrics.
-- Split: 1 normal train dataset; validation and test each have synthetic segmentation, synthetic classification, real segmentation reference, and real classification reference.
+- Split: 1 normal train dataset; validation and test each have fixed synthetic segmentation/classification references plus real segmentation/classification references.
+- Synthetic references are generated once before training as fixed SSN synthetic masks/labels, then reused through the current model path.
 - Important for future printer-part runs without masks: real labels are reference-only here; early stopping stays on unsupervised `Validation_Loss`.

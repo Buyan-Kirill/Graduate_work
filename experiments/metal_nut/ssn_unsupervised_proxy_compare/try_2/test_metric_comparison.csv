@@ -1,0 +1,11 @@
+task,source,metric,value
+segmentation,synthetic,synthetic_pixel_aupro,0.1300562173128128
+segmentation,synthetic,synthetic_pixel_roc_auc,0.5212989899219571
+segmentation,synthetic,synthetic_pixel_ap,0.18604174351841457
+segmentation,real,pixel_aupro,0.6898735165596008
+segmentation,real,pixel_roc_auc,0.9046121998924651
+segmentation,real,pixel_ap,0.6388667894103514
+classification,synthetic,synthetic_image_roc_auc_raw,0.4790673025967144
+classification,synthetic,synthetic_image_ap_raw,0.6340665144769907
+classification,real,image_roc_auc_raw,0.172147001934236
+classification,real,image_ap_raw,0.6875897103718542
