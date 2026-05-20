@@ -11,6 +11,13 @@ except ImportError:
 
 warnings.filterwarnings("ignore", module="PIL")
 
+DEFAULT_DATASET_DIR = "datasets/3d_printer_dataset"
+DEFAULT_OUTPUT_DIR = "datasets/processed_printer_dataset"
+DEFAULT_FILTERED_DIR = "datasets/filtered_printer_dataset"
+DEFAULT_IMAGE_SIZE = 320
+DEFAULT_MIN_OBJECT_RATIO = 0.2
+MASK_FOLDERS = ["script_masks", "correlation_script_masks"]
+
 
 def progress_bar(iterable, **kwargs):
     if tqdm is None:
@@ -33,6 +40,33 @@ def is_image_file(filename):
         not filename.startswith("._")
         and filename.lower().endswith((".png", ".jpg", ".jpeg"))
     )
+
+
+def find_mask_path(date_path, img_file):
+    """Находит маску для изображения по номеру внутри папки даты"""
+    img_stem = os.path.splitext(img_file)[0]
+    candidates = []
+
+    for mask_folder in MASK_FOLDERS:
+        mask_path = os.path.join(date_path, mask_folder)
+        if not os.path.isdir(mask_path):
+            continue
+
+        for mask_file in sorted(os.listdir(mask_path)):
+            if not is_image_file(mask_file):
+                continue
+
+            mask_stem = os.path.splitext(mask_file)[0]
+            if mask_file == img_file or mask_stem == img_stem:
+                candidates.append(os.path.join(mask_path, mask_file))
+
+    if len(candidates) == 1:
+        return candidates[0], None
+
+    if len(candidates) == 0:
+        return None, "missing_masks"
+
+    return None, "ambiguous_masks"
 
 
 def load_and_normalize_image(path):
@@ -70,6 +104,12 @@ def calculate_non_black_ratio(image, threshold=10):
         non_black_count = np.count_nonzero(img_array > threshold)
     
     return non_black_count / total_pixels if total_pixels > 0 else 0
+
+
+def save_binary_mask(mask, path):
+    """Сохраняет бинарную маску объекта"""
+    mask_img = Image.fromarray((mask.astype(np.uint8) * 255))
+    mask_img.save(path)
 
 
 def _process_training_image(img, mask, img_file, output_dir, 
@@ -127,6 +167,9 @@ def _process_training_image(img, mask, img_file, output_dir,
                 full_obj_name = f"{img_file[:-4]}_obj{obj_val}_full.png"
                 full_obj_path = os.path.join(output_dir, "full_objects", full_obj_name)
                 full_obj_img.save(full_obj_path)
+
+                full_mask_path = os.path.join(output_dir, "full_objects_masks", full_obj_name)
+                save_binary_mask(full_mask, full_mask_path)
                 full_objects_count += 1
         
         # Если объект слишком маленький, расширяем до минимального размера
@@ -163,14 +206,22 @@ def _process_training_image(img, mask, img_file, output_dir,
                         continue
                     
                     tile = obj_img.crop((x1, y1, x2, y2))
-                    
+                    tile_mask_img = Image.fromarray((tile_mask.astype(np.uint8) * 255))
+
                     if tile.size != target_size:
                         padded = Image.new("RGB", target_size, (0, 0, 0))
                         padded.paste(tile, (0, 0))
                         tile = padded
-                    
+
+                        padded_mask = Image.new("L", target_size, 0)
+                        padded_mask.paste(tile_mask_img, (0, 0))
+                        tile_mask_img = padded_mask
+
                     output_name = os.path.join("objects_parts", f"{img_file[:-4]}_obj{obj_val}_tile_{x1}_{y1}.png")
                     tile.save(os.path.join(output_dir, output_name))
+
+                    mask_output_name = os.path.join("objects_parts_masks", f"{img_file[:-4]}_obj{obj_val}_tile_{x1}_{y1}.png")
+                    tile_mask_img.save(os.path.join(output_dir, mask_output_name))
                     processed_count += 1
         else:
             # Объект помещается целиком
@@ -190,14 +241,20 @@ def _process_training_image(img, mask, img_file, output_dir,
             ratio = min(target_size[0]/bbox_width, target_size[1]/bbox_height)
             new_size = (int(bbox_width * ratio), int(bbox_height * ratio))
             resized = cropped.resize(new_size, Image.LANCZOS)
-            
+            resized_mask = Image.fromarray((bbox_mask.astype(np.uint8) * 255)).resize(new_size, Image.NEAREST)
+
             centered = Image.new("RGB", target_size, (0, 0, 0))
+            centered_mask = Image.new("L", target_size, 0)
             pos = ((target_size[0] - new_size[0]) // 2,
                    (target_size[1] - new_size[1]) // 2)
             centered.paste(resized, pos)
-            
+            centered_mask.paste(resized_mask, pos)
+
             output_name = os.path.join("objects_parts", f"{img_file[:-4]}_obj{obj_val}_centered.png")
             centered.save(os.path.join(output_dir, output_name))
+
+            mask_output_name = os.path.join("objects_parts_masks", f"{img_file[:-4]}_obj{obj_val}_centered.png")
+            centered_mask.save(os.path.join(output_dir, mask_output_name))
             processed_count += 1
             
     return processed_count, full_objects_count
@@ -220,22 +277,23 @@ def _process_date_folder(date_path, date_folder, output_dir, target_size, step_s
                         padding, min_object_ratio, save_full_objects, mask_background=False):
     """Обрабатывает папку с датой для тренировочных данных"""
     rect_path = os.path.join(date_path, "rect")
-    mask_path = None
-    
-    for mask_folder in ["script_masks", "correlation_script_masks"]:
+    mask_paths = []
+
+    for mask_folder in MASK_FOLDERS:
         candidate = os.path.join(date_path, mask_folder)
         if os.path.isdir(candidate):
-            mask_path = candidate
-            break
-            
-    if not os.path.isdir(rect_path) or not mask_path:
+            mask_paths.append(candidate)
+
+    if not os.path.isdir(rect_path) or not mask_paths:
         return 0, 0
 
     output_dir_with_date = os.path.join(output_dir, date_folder)
     os.makedirs(output_dir_with_date, exist_ok=True)
     os.makedirs(os.path.join(output_dir_with_date, "objects_parts"), exist_ok=True)
+    os.makedirs(os.path.join(output_dir_with_date, "objects_parts_masks"), exist_ok=True)
     if save_full_objects:
         os.makedirs(os.path.join(output_dir_with_date, "full_objects"), exist_ok=True)
+        os.makedirs(os.path.join(output_dir_with_date, "full_objects_masks"), exist_ok=True)
     
     processed_count = 0
     full_objects_count = 0
@@ -243,6 +301,7 @@ def _process_date_folder(date_path, date_folder, output_dir, target_size, step_s
         "images_total": 0,
         "images_processed": 0,
         "missing_masks": 0,
+        "ambiguous_masks": 0,
         "size_mismatch": 0,
         "objects_total": 0,
         "objects_rejected_min_ratio": 0,
@@ -254,10 +313,10 @@ def _process_date_folder(date_path, date_folder, output_dir, target_size, step_s
         stats["images_total"] += 1
             
         img_path = os.path.join(rect_path, img_file)
-        mask_path_file = os.path.join(mask_path, img_file)
+        mask_path_file, mask_status = find_mask_path(date_path, img_file)
         
-        if not os.path.exists(mask_path_file):
-            stats["missing_masks"] += 1
+        if mask_path_file is None:
+            stats[mask_status] += 1
             continue
             
         try:
@@ -278,6 +337,7 @@ def _process_date_folder(date_path, date_folder, output_dir, target_size, step_s
         f"{date_folder}: "
         f"кадры {stats['images_processed']}/{stats['images_total']} | "
         f"без маски {stats['missing_masks']} | "
+        f"неоднозначных масок {stats['ambiguous_masks']} | "
         f"объекты {stats['objects_total']} | "
         f"отброшено фрагм. {stats['objects_rejected_min_ratio']} | "
         f"сохранено фрагм. {processed_count} | "
@@ -429,9 +489,9 @@ def process_data(
     Обрабатывает датасет, создавая изображения фиксированного размера с объектами или их частями.
     """
     os.makedirs(output_dir, exist_ok=True)
-    
+
     if step_size is None:
-        step_size = target_size
+        step_size = (max(1, target_size[0] // 2), max(1, target_size[1] // 2))
     
     log_message(f"Начинаем обработку {data_type} данных. Результаты будут сохранены в: {output_dir}")
     
@@ -467,49 +527,72 @@ def process_data(
         log_message(f"Сохранено полных объектов: {total_full_objects}")
 
 
-def process_training_data():
+def process_training_data(
+    dataset_dir=DEFAULT_DATASET_DIR,
+    output_dir=DEFAULT_OUTPUT_DIR,
+    target_size=(DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE),
+    step_size=None,
+    min_object_ratio=DEFAULT_MIN_OBJECT_RATIO
+):
     """Обрабатывает только тренировочные данные"""
     process_data(
-        base_dir="datasets/filtered_printer_dataset/training_data",
-        output_dir="datasets/processed_printer_dataset/training",
-        target_size=(320, 320),
-        step_size=(128, 128),
+        base_dir=os.path.join(dataset_dir, "training_data"),
+        output_dir=os.path.join(output_dir, "training"),
+        target_size=target_size,
+        step_size=step_size,
         padding=10,
-        min_object_ratio=0.2,
+        min_object_ratio=min_object_ratio,
         save_full_objects=True,
         mask_background=False,
         data_type="training"
     )
 
 
-def process_anomalous_data():
+def process_anomalous_data(
+    dataset_dir=DEFAULT_DATASET_DIR,
+    output_dir=DEFAULT_OUTPUT_DIR,
+    target_size=(DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE),
+    step_size=None,
+    min_object_ratio=DEFAULT_MIN_OBJECT_RATIO
+):
     """Обрабатывает только аномальные данные"""
     process_data(
-        base_dir="datasets/filtered_printer_dataset/anomalous_data",
-        output_dir="datasets/processed_printer_dataset/anomalies",
-        target_size=(320, 320),
-        step_size=(128, 128),
+        base_dir=os.path.join(dataset_dir, "anomalous_data"),
+        output_dir=os.path.join(output_dir, "anomalies"),
+        target_size=target_size,
+        step_size=step_size,
         padding=0,
-        min_object_ratio=0.2,
+        min_object_ratio=min_object_ratio,
         save_full_objects=False,
         mask_background=False,
         data_type="anomalous"
     )
 
 
-def process_masked_anomalies():
+def process_masked_anomalies(
+    dataset_dir=DEFAULT_DATASET_DIR,
+    filtered_dir=DEFAULT_FILTERED_DIR,
+    output_dir=DEFAULT_OUTPUT_DIR,
+    target_size=(DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE),
+    step_size=None,
+    min_object_ratio=DEFAULT_MIN_OBJECT_RATIO
+):
     """Обрабатывает изображения, которые есть в оригинальных 3d_printer_dataset/training_data, но отсутствуют в
     filtered_dataset/training_data для получения аномальных изображений, для которых есть маска"""
-    
-    source_base_dir = "datasets/3d_printer_dataset/training_data"
-    filtered_base_dir = "datasets/filtered_printer_dataset/training_data"
-    output_dir = "datasets/processed_printer_dataset/anomalies_masked"
-    
+
+    source_base_dir = os.path.join(dataset_dir, "training_data")
+    filtered_base_dir = os.path.join(filtered_dir, "training_data")
+    output_dir = os.path.join(output_dir, "anomalies_masked")
+
     os.makedirs(os.path.join(output_dir, "objects_parts"), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, "objects_parts_masks"), exist_ok=True)
     os.makedirs(os.path.join(output_dir, "full_objects"), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, "full_objects_masks"), exist_ok=True)
 
     total_processed = 0
     total_full_objects = 0
+    total_missing_masks = 0
+    total_ambiguous_masks = 0
 
     if not os.path.isdir(source_base_dir):
         log_message(f"Источник masked anomalies не найден: {source_base_dir}")
@@ -545,14 +628,13 @@ def process_masked_anomalies():
         date_path = os.path.join(source_base_dir, date_folder)
 
         rect_path = os.path.join(date_path, "rect")
-        mask_path = None
-        for mask_folder in ["script_masks", "correlation_script_masks"]:
+        mask_paths = []
+        for mask_folder in MASK_FOLDERS:
             candidate = os.path.join(date_path, mask_folder)
             if os.path.isdir(candidate):
-                mask_path = candidate
-                break
+                mask_paths.append(candidate)
 
-        if not os.path.isdir(rect_path) or not mask_path:
+        if not os.path.isdir(rect_path) or not mask_paths:
             continue
 
         image_files = [f for f in sorted(os.listdir(rect_path)) if is_image_file(f)]
@@ -562,8 +644,12 @@ def process_masked_anomalies():
                 continue
 
             img_path = os.path.join(rect_path, img_file)
-            mask_path_file = os.path.join(mask_path, img_file)
-            if not os.path.exists(mask_path_file):
+            mask_path_file, mask_status = find_mask_path(date_path, img_file)
+            if mask_path_file is None:
+                if mask_status == "missing_masks":
+                    total_missing_masks += 1
+                elif mask_status == "ambiguous_masks":
+                    total_ambiguous_masks += 1
                 continue
 
             try:
@@ -572,10 +658,10 @@ def process_masked_anomalies():
 
                 count, full_count = _process_training_image(
                     img, mask, img_file, output_dir,
-                    target_size=(320, 320),
-                    step_size=(128, 128),
+                    target_size=target_size,
+                    step_size=step_size,
                     padding=10,
-                    min_object_ratio=0.2,
+                    min_object_ratio=min_object_ratio,
                     save_full_objects=True,
                     mask_background=False
                 )
@@ -588,25 +674,70 @@ def process_masked_anomalies():
     log_message(f"\nОбработка masked anomalies завершена!")
     log_message(f"Создано фрагментов: {total_processed}")
     log_message(f"Сохранено полных объектов: {total_full_objects}")
+    log_message(f"Без маски: {total_missing_masks}, неоднозначных масок: {total_ambiguous_masks}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Обработка датасета для обучения и аномальных данных')
     parser.add_argument('--mode', type=str, choices=['training', 'anomalous', 'all'], default='all',
                     help='Режим обработки: training (только тренировочные), anomalous (только аномальные), all (все)')
+    parser.add_argument('--dataset_dir', '--data_dir', '--input_dir', type=str, default=DEFAULT_DATASET_DIR,
+                    help='Путь к датасету с папками training_data и anomalous_data')
+    parser.add_argument('--output_dir', type=str, default=DEFAULT_OUTPUT_DIR,
+                    help='Путь для сохранения подготовленного датасета')
+    parser.add_argument('--image_size', type=int, default=DEFAULT_IMAGE_SIZE,
+                    help='Итоговый размер квадратного изображения')
+    parser.add_argument('--step_size', type=int, default=None,
+                    help='Шаг нарезки больших изображений на фрагменты. По умолчанию половина --image_size')
+    parser.add_argument('--min_object_ratio', '--min_non_background_ratio', type=float,
+                    default=DEFAULT_MIN_OBJECT_RATIO,
+                    help='Минимальная доля маски/не фоновых пикселей во фрагменте')
+    parser.add_argument('--filtered_dir', type=str, default=DEFAULT_FILTERED_DIR,
+                    help='Путь к filtered dataset для legacy-режима --masked_anomalies')
     parser.add_argument('--masked_anomalies', action='store_true',
-                    help='Обрабатывать изображения из training_data (3d_printer_dataset), отсутствующие в filtered_dataset/training_data, как аномалии')
-    
+                    help='Legacy: обрабатывать кадры из training_data, отсутствующие в --filtered_dir/training_data, как аномалии с масками')
+
     args = parser.parse_args()
+
+    if args.image_size <= 0:
+        parser.error('--image_size должен быть больше 0')
+    if args.step_size is not None and args.step_size <= 0:
+        parser.error('--step_size должен быть больше 0')
+    if args.min_object_ratio < 0 or args.min_object_ratio > 1:
+        parser.error('--min_object_ratio должен быть в диапазоне [0, 1]')
+
+    target_size = (args.image_size, args.image_size)
+    step_size = None
+    if args.step_size is not None:
+        step_size = (args.step_size, args.step_size)
     
     if args.mode == 'training' or args.mode == 'all':
         log_message("=== ОБРАБОТКА ТРЕНИРОВОЧНЫХ ДАННЫХ ===")
-        process_training_data()
+        process_training_data(
+            dataset_dir=args.dataset_dir,
+            output_dir=args.output_dir,
+            target_size=target_size,
+            step_size=step_size,
+            min_object_ratio=args.min_object_ratio
+        )
     
     if args.mode == 'anomalous' or args.mode == 'all':
         log_message("\n=== ОБРАБОТКА АНОМАЛЬНЫХ ДАННЫХ ===")
-        process_anomalous_data()
+        process_anomalous_data(
+            dataset_dir=args.dataset_dir,
+            output_dir=args.output_dir,
+            target_size=target_size,
+            step_size=step_size,
+            min_object_ratio=args.min_object_ratio
+        )
     
     if args.masked_anomalies:
         log_message("\n=== ОБРАБОТКА MASKED ANOMALIES ===")
-        process_masked_anomalies()
+        process_masked_anomalies(
+            dataset_dir=args.dataset_dir,
+            filtered_dir=args.filtered_dir,
+            output_dir=args.output_dir,
+            target_size=target_size,
+            step_size=step_size,
+            min_object_ratio=args.min_object_ratio
+        )

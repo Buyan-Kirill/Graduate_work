@@ -3,7 +3,8 @@ my_env/
 __pycache__/
 *.pyc
 
-datasets/
+datasets/*
+!datasets/README.md
 
 .ipynb_checkpoints/
 .env

@@ -1,2 +1,2 @@
-synthetic_pixel_aupro: 0.8966774344444275
-synthetic_image_roc_auc_raw: 0.9937205651491365
+synthetic_pixel_aupro: 0.898078978061676
+synthetic_image_roc_auc_raw: 0.9792423456149454
