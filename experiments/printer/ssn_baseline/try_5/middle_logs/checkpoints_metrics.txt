@@ -1,0 +1,40 @@
+Epoch 8:
+Train_Loss: 1.0716682851314545
+Validation_Loss: 1.0644378960132599
+
+Epoch 16:
+Train_Loss: 1.07127718269825
+Validation_Loss: 1.055778842419386
+
+Epoch 24:
+Train_Loss: 1.0693831890821457
+Validation_Loss: 1.0767212808132172
+
+Epoch 32:
+Train_Loss: 1.0678785514831544
+Validation_Loss: 1.0506511628627777
+
+Epoch 40:
+Train_Loss: 1.0665521812438965
+Validation_Loss: 1.0654872544109821
+
+Epoch 48:
+Train_Loss: 1.0629018586874008
+Validation_Loss: 1.0560407266020775
+
+Epoch 56:
+Train_Loss: 1.0567492228746413
+Validation_Loss: 1.061791181564331
+
+Epoch 64:
+Train_Loss: 0.9874629700183868
+Validation_Loss: 0.9800289012491703
+
+Epoch 72:
+Train_Loss: 0.24273608393967153
+Validation_Loss: 0.21431542932987213
+
+Epoch 80:
+Train_Loss: 0.016263550515286624
+Validation_Loss: 0.04846748989075422
+

@@ -1,0 +1,8 @@
+num_good: 37
+num_anomaly: 46
+score_gap_raw: 0.8890070601461671
+score_median_gap_raw: 0.8139050602912903
+score_margin_raw: -0.6013972163200378
+score_separation_cohens_d_raw: 1.7167857830314737
+image_roc_auc_raw: 0.9001175088131609
+accuracy_at_0_5: 0.5542168674698795
