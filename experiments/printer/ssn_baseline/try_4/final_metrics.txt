@@ -1,0 +1,4 @@
+Train_Loss: 0.016263550515286624
+Validation_Loss: 0.04846748989075422
+best_epoch: 80
+best_Validation_Loss: 0.04846748989075422
