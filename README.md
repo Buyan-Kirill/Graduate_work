@@ -25,6 +25,14 @@
 python code/prepare_dataset.py --mode all
 ```
 
+Минимальные зависимости для подготовки датасета:
+
+```bash
+pip install numpy pillow tqdm
+```
+
+Зависимости для ноутбуков описаны в [code/README.md](code/README.md).
+
 ## Что смотреть
 
 - MVTec-гипотезы: `experiments/metal_nut/`, `experiments/hazelnut/`.

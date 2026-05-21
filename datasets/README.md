@@ -2,6 +2,14 @@
 
 Эта папка хранит локальные данные для экспериментов по anomaly detection и локализации дефектов. Полные датасеты, архивы и подготовленные выборки не добавляются в GitHub; в репозиторий должен попадать только этот README.
 
+## Зависимости для подготовки датасета
+
+Для запуска `code/prepare_dataset.py` нужны `numpy`, `Pillow` и опционально `tqdm` для progress bar:
+
+```bash
+pip install numpy pillow tqdm
+```
+
 ## MVTec AD
 
 Путь по умолчанию: `datasets/MVTecAD/`.
