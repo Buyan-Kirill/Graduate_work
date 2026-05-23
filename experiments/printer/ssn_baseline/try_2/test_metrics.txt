@@ -1,4 +1,0 @@
-synthetic_val_pixel_aupro: 0.1517873853445053
-synthetic_val_image_roc_auc_raw: 0.47759383194395516
-image_roc_auc_raw: 0.8948296122209166
-image_roc_auc_raw_printer_anomaly: 0.8948296122209166

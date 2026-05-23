@@ -1,7 +1,0 @@
-before_image_roc_auc: 0.29583333333333334
-after_image_roc_auc: 0.9291666666666667
-delta_image_roc_auc: 0.6333333333333333
-before_image_avg_precision: 0.4110479568027907
-after_image_avg_precision: 0.9298763929568883
-delta_image_avg_precision: 0.5188284361540976
-improved_on_both_metrics: True

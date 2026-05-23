@@ -1,2 +1,0 @@
-Train_Loss: 1.042229135121618
-Validation_Loss: 1.041450390448937

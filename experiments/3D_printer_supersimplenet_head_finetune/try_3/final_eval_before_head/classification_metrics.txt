@@ -1,5 +1,0 @@
-image_roc_auc: 0.29583333333333334
-image_avg_precision: 0.4110479568027907
-num_images: 31
-num_good: 15
-num_anomaly: 16
