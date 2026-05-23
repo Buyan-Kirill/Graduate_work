@@ -1,0 +1,5 @@
+num_good: 36
+num_anomaly: 46
+accuracy_at_0_5: 0.5609756097560976
+image_roc_auc_raw: 0.6177536231884058
+score_separation_cohens_d_raw: 0.35197932380633834

@@ -1,0 +1,3 @@
+Train_Loss: 55129.627972
+Val_Loss: 106971.136285
+Best_Val_Loss: 106971.136285
