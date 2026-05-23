@@ -1,0 +1,32 @@
+Epoch 1:
+Train_Loss: 350971.317383
+Val_Loss: 319167.450000
+
+Epoch 2:
+Train_Loss: 278555.620605
+Val_Loss: 238456.443750
+
+Epoch 3:
+Train_Loss: 195800.718262
+Val_Loss: 160943.525000
+
+Epoch 4:
+Train_Loss: 117670.854248
+Val_Loss: 98200.870313
+
+Epoch 5:
+Train_Loss: 59694.755310
+Val_Loss: 56350.945312
+
+Epoch 6:
+Train_Loss: 22435.837097
+Val_Loss: 33328.132812
+
+Epoch 7:
+Train_Loss: 5220.184814
+Val_Loss: 24500.138281
+
+Epoch 8:
+Train_Loss: -1195.338104
+Val_Loss: 23005.262109
+
