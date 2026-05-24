@@ -1,0 +1,38 @@
+[
+  {
+    "run_name": "before_head_finetune",
+    "image_roc_auc_raw": 0.9981572481572482,
+    "delta_image_roc_auc_raw": 0.0,
+    "image_avg_precision_raw": 0.9994520881488672,
+    "delta_image_avg_precision_raw": 0.0,
+    "pixel_aupro": 0.9282612800598145,
+    "delta_pixel_aupro": 0.0
+  },
+  {
+    "run_name": "after_classification_head_finetune",
+    "image_roc_auc_raw": 0.9944717444717445,
+    "delta_image_roc_auc_raw": -0.0036855036855036882,
+    "image_avg_precision_raw": 0.9984410095026534,
+    "delta_image_avg_precision_raw": -0.0010110786462138588,
+    "pixel_aupro": 0.9282612800598145,
+    "delta_pixel_aupro": 0.0
+  },
+  {
+    "run_name": "after_weak_segdec_mil_finetune",
+    "image_roc_auc_raw": 0.9950859950859952,
+    "delta_image_roc_auc_raw": -0.0030712530712529995,
+    "image_avg_precision_raw": 0.998486442930043,
+    "delta_image_avg_precision_raw": -0.0009656452188242515,
+    "pixel_aupro": 0.9280074238777161,
+    "delta_pixel_aupro": -0.00025385618209838867
+  },
+  {
+    "run_name": "after_supervised_segdec_finetune",
+    "image_roc_auc_raw": 0.9987714987714988,
+    "delta_image_roc_auc_raw": 0.0006142506142506887,
+    "image_avg_precision_raw": 0.99963720477234,
+    "delta_image_avg_precision_raw": 0.0001851166234727586,
+    "pixel_aupro": 0.9338332414627075,
+    "delta_pixel_aupro": 0.005571961402893066
+  }
+]
