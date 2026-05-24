@@ -1,0 +1,292 @@
+\documentclass[14pt,a4paper]{extarticle}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{newtxtext,newtxmath}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+\geometry{left=2.5cm,right=2cm,top=2.5cm,bottom=2.5cm}
+\onehalfspacing
+\setlength{\parindent}{0.5cm}
+\setlength{\parskip}{0pt}
+
+% Headers & Footers
+\pagestyle{fancy}
+\fancyhf{} % clear all headers/footers
+\fancyfoot[C]{\thepage} % page number centered at bottom
+\renewcommand{\headrulewidth}{0pt} % no top rule
+\renewcommand{\footrulewidth}{0pt} % no bottom rule
+
+% Section formatting
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{\thesubsubsection}{1em}{}
+
+% Force new page before each section
+\let\oldsection\section
+\renewcommand{\section}{\newpage\oldsection}
+
+\title{
+  \vspace{-1.5cm}
+  {\LARGE\bfseries SuperSimpleNet: Unifying Unsupervised and Supervised Learning for Fast and Reliable Surface Defect Detection} \\
+  \vspace{0.3cm}
+  \large A Technical Overview
+}
+\author{}
+\date{}
+
+\begin{document}
+
+% Title page
+\newpage
+\begin{center}
+    Lomonosov Moscow State University \\
+    Faculty of Computational Mathematics and Cybernetics \\
+    \vspace{7cm}
+    \textbf{\Large SuperSimpleNet: Unifying Unsupervised and Supervised Learning for Fast and Reliable Surface Defect Detection} \\
+    \vspace{10cm}
+    Buyan Kirill \\
+    Group 517 \\
+    \vspace{0.5cm}
+    Moscow \\
+    2026
+\end{center}
+% \thispagestyle{empty}
+\newpage
+
+% Table of Contents
+\section*{Contents}
+\begin{enumerate}
+    \item[1] Introduction \hfill 3
+    \item[2] Background on anomaly detection \hfill 4
+    \item[3] Architecture of SuperSimpleNet \hfill 5
+    \item[4] Key ideas of the method \hfill 7
+    \item[5] Training and inference process \hfill 9
+    \item[6] Conclusion \hfill 11
+    \item[7] Sources \hfill 12
+\end{enumerate}
+\newpage
+
+
+
+\section{Introduction}
+
+Nowadays, many companies use computer vision systems to control quality of products. It is especially important in manufacturing, where even small defect can be expensive or dangerous. For this reason, automatic surface defect detection is an important task.
+
+The goal of this task is to understand if object on image has defect or not. Also it is often important to localize this defect. However, where exist several problems in this task. First of them - defects are usually rare, and it is hard to collect many examples of them. Also different defects can look very different. In some cases we have only normal images for training. In other cases we also have anomalous images and masks, but their number is still small.
+
+In this article new method called SuperSimpleNet is described. It is made for surface defect detection and segmentation. The method is based on SimpleNet, but improves it in several important details. SuperSimpleNet can work in unsupervised case, when only normal images are available, and also in supervised case, when real defects and masks are given.
+
+The main idea of this method is to use pretrained feature extractor and generate artificial anomalies in feature space. After that, the model learns to detect these artificial anomalies. This makes the method simple, fast and useful for practical industrial tasks.
+
+
+
+\section{Background on anomaly detection}
+
+There are several common approaches for the task of anomaly detection and segmentation in images:
+
+\begin{itemize}
+    \item  The first approach is reconstruction-based. For example, autoencoder can be trained only on normal images. After that, if anomalous image is given, the model should reconstruct it worse, and reconstruction error can be used as anomaly score. This idea is easy to understand, but it has one problem. Neural networks sometimes reconstruct anomalous parts too well, so defect can be missed.
+    \item The second approach is feature-based. In this case, model uses features from network like ResNet or WideResNet. These features are useful because ImageNet pretrained networks already know many visual patterns. After that, different methods can model distribution of normal features. Such approaches often give good results, but they can be heavy and not always easy to use in supervised setting.
+    \item The third approach is discriminative anomaly detection. In this case model is trained to separate normal and anomalous regions. But if we do not have real anomalies, we need to generate synthetic anomalies. This idea is used in SimpleNet and SuperSimpleNet.
+\end{itemize}
+
+
+\section{Architecture of SuperSimpleNet}
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\textwidth]{SuperSimpleNetArchitecture.png}
+\caption{SuperSimpleNet architecture}
+\label{fig:ssn_architecture}
+\end{figure}
+
+SuperSimpleNet consists of several main parts:
+\begin{enumerate}
+    \item feature extractor
+    \item feature upscaling
+    \item feature adaptor
+    \item synthetic anomaly generation
+    \item segmentation head
+    \item classification head
+\end{enumerate}
+
+\subsection{Feature extractor}
+
+At first, image is passed through pretrained neural network. In the paper authors use WideResNet50 pretrained on ImageNet. Features are taken from layer 2 and layer 3.
+
+Features from different layers have different spatial resolution. For this reason, SuperSimpleNet upscales them. Features from layer 3 are upscaled by factor 4, and features from layer 2 are upscaled by factor 2. After this, features have the same spatial size and can be concatenated.
+
+This part is one of differences from SimpleNet. Better spatial resolution helps model to localize defects more accurately.
+
+\subsection{Feature adaptor}
+
+After features are extracted and concatenated, feature adaptor is applied. It is implemented as $1 \times 1$ convolution.
+
+The main purpose of this block is to transform pretrained features to more useful space for anomaly detection. ImageNet features are general, but defect detection is a specific task. So adaptor helps to adapt these features without changing whole backbone.
+
+This also makes architecture simple. Backbone can be used as fixed feature extractor, while adaptor and prediction heads learn task-specific information.
+
+\subsection{Segmentation and classification heads}
+
+SuperSimpleNet has two heads:
+
+\begin{itemize}
+    \item The first head is segmentation head. It predicts anomaly map. This map shows which regions of image are probably anomalous.
+    \item The second head is classification head. It predicts one anomaly score for whole image. This score shows if image contains defect or not.
+\end{itemize}
+
+This is useful because image-level detection and pixel-level localization are not exactly the same problem. For example, segmentation map can have small noisy false positive regions. If we use only maximum value from segmentation map, final anomaly score can be unstable. Classification head can make more global decision using both feature map and anomaly map.
+
+Because of this, SuperSimpleNet can be better in supervised setting, where anomalous images are available during training.
+
+
+
+\section{Key ideas of the method}
+\subsection{Synthetic anomalies in feature space}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\textwidth]{SyntheticAnomalyGeneration.png}
+\caption{Synthetic anomaly generation in supervised and unsupervised settings}
+\label{fig:synthetic_anomaly}
+\end{figure}
+
+The central idea of SuperSimpleNet is synthetic anomaly generation in feature space.
+
+The process is the following:
+\begin{enumerate}
+    \item Perlin noise is generated
+    \item This noise is binarized and becomes anomaly mask
+    \item Gaussian noise is sampled
+    \item This noise is added to selected parts of feature map
+\end{enumerate}
+
+As a result, model receives feature map with synthetic anomalous regions. Since mask is known, model can be trained to predict this mask.
+
+Perlin noise is used because it creates connected regions. This is better than independent random noise, because real defects are usually not just random pixels. They often have some spatial structure.
+
+\subsection{Supervised and unsupervised cases}
+
+Another important part of the paper is that the same method can be used in two cases.
+
+In unsupervised case, training data contains only normal images. Then all anomaly masks are synthetic. Model learns to find artificial anomalies and then uses this knowledge for real defects during inference.
+
+In supervised case, real defect masks are also available. But authors still use synthetic anomalies. It is useful because real training defects may not describe all possible defects. Synthetic anomalies can improve generalization.
+
+In supervised setting, synthetic anomalies are added only to normal regions. Real defect regions are kept. So the final training mask contains both real defects and artificial defects.
+
+This is a good practical property. In real production, at first we can have only normal images. Later, some real defects can be collected and annotated. SuperSimpleNet can use both situations without changing full pipeline.
+
+\subsection{Classification head}
+
+SimpleNet mainly uses segmentation output for anomaly detection. SuperSimpleNet adds classification head.
+
+This head receives feature map and predicted anomaly map. Then it produces one score for the image. This score is used as final image-level anomaly score.
+
+This idea is simple, but useful. If model sees only local anomaly map, it can be sensitive to noise. Classification head can learn more stable rule. It can understand if suspicious region is really important for whole image.
+
+In ablation study from the paper, classification head is especially useful in supervised setting. Without it, image-level performance becomes worse.
+
+
+
+\section{Training and inference process}
+\subsection{Training procedure}
+
+Training procedure is not very complicated. During training, model extracts features, applies adaptor, creates synthetic anomalies and then trains segmentation and classification heads.
+
+Synthetic anomalies are not added to all images. They are added only to 50\% of training images. This is important because otherwise model would see too many anomalous examples and classification task would become incorrect. Model should see both normal and anomalous examples.
+
+For segmentation, model predicts anomaly map. Ground truth mask depends on training setting:
+\begin{itemize}
+    \item in unsupervised case it is synthetic mask
+    \item in supervised case it is combination of real mask and synthetic mask
+\end{itemize}
+
+For segmentation loss, authors use truncated $L_1$ loss and focal loss. Truncated $L_1$ loss is defined as:
+\[
+l_{i,j} =
+\begin{cases}
+\max(0, th - D_{seg}(P_{i,j})), & \text{if } M[i,j] = 1 \\
+\max(0, th + D_{seg}(P_{i,j})), & \text{otherwise}
+\end{cases}
+\]
+where $th = 0.5$.
+
+Final segmentation loss is:
+\[
+{L}_{seg} = {L}_{1t} + {L}_{foc}.
+\]
+
+For classification head, focal loss is also used:
+\[
+{L}_{cls} = {L}_{foc}.
+\]
+
+The full loss is:
+\[
+{L} = {L}_{seg} + {L}_{cls}.
+\]
+
+Focal loss is used here because data is imbalanced. Usually most pixels are normal and most images also do not contain defects.
+
+\subsection{Inference process}
+
+Inference is simpler than training. No synthetic anomaly generation is used.
+
+The inference process is:
+\begin{enumerate}
+    \item Image is passed through pretrained WideResNet50
+    \item Features from different layers are upscaled and concatenated
+    \item Feature adaptor transforms them
+    \item Segmentation head predicts anomaly map
+    \item Classification head predicts image-level anomaly score
+    \item Anomaly map is resized to original image size and smoothed
+\end{enumerate}
+
+The method is also fast. In the paper authors report inference time 9.3 ms and throughput 268 images per second on NVIDIA Tesla V100S. This is important for real industrial systems, where model should process many images quickly.
+
+
+
+\section{Conclusion}
+SuperSimpleNet is a simple and practical method for surface defect detection. It does not use very complex architecture, but improves previous SimpleNet method in several useful ways.
+
+The main advantages of SuperSimpleNet are:
+\begin{itemize}
+    \item it uses pretrained features from WideResNet50
+    \item it improves spatial resolution of features by upscaling
+    \item it generates synthetic anomalies in feature space
+    \item it can work both with and without real defect masks
+    \item it adds classification head for image-level anomaly detection
+    \item it has fast inference
+\end{itemize}
+
+The experimental results in the paper show that SuperSimpleNet gives strong results on several datasets, including MVTec AD, VisA, SensumSODF and KSDD2. It works well in unsupervised setting and also benefits from supervised data when it is available.
+
+From practical point of view, this method is interesting because it is flexible. In many real tasks we do not have many defects at the beginning. But later some defects can be collected. SuperSimpleNet can use normal data first and then also use real anomalies without changing main architecture.
+
+Possible future improvements can be:
+\begin{itemize}
+    \item using stronger backbones
+    \item using transformer-based feature extractors
+    \item making synthetic anomalies more similar to real industrial defects
+    \item using temporal information if images are collected one after another
+    \item improving robustness to glare, lighting changes and camera noise
+\end{itemize}
+
+
+
+\section{Sources}
+\begin{enumerate}
+    \item Authors: Blaž Rolih, Matic Fučka, and Danijel Skočaj. Title: "SuperSimpleNet: Unifying Unsupervised and Supervised Learning for Fast and Reliable Surface Defect Detection". Url: https://arxiv.org/pdf/2408.03143
+\end{enumerate}
+
+\end{document}

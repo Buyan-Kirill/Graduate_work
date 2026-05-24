@@ -1,0 +1,13 @@
+Рекомендуемые изображения для вставки рядом с master_work.txt
+
+1. fastflow_architecture.png
+   Архитектура FastFlow из статьи.
+
+2. fastflow_loss_quality_mismatch.png
+   График функции потерь на обучении и валидации для FastFlow ResNet18 с увеличенным числом эпох. Смысл: показать, что функция потерь продолжает уменьшаться, но ROC-AUC на тесте падает.
+
+3. fastflow_vs_ssn_maps.png
+   Единый коллаж с картами аномалий FastFlow и SuperSimpleNet на одинаковых примерах из датасета 3D-принтера. Можно сделать по 2-3 панели для каждой модели, чтобы было видно, что FastFlow чаще подсвечивает форму объекта или фон, а SuperSimpleNet меньше зависит от границ детали.
+
+4. supersimplenet_architecture.png
+   Схема архитектуры SuperSimpleNet из статьи.
