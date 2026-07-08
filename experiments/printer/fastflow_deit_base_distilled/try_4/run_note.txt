@@ -1,0 +1,3 @@
+Цель запуска: stability run FastFlow DeiT с фиксированным top_k_pixels=49152 после top-k sweep.
+Ключевые настройки: backbone=deit_base_distilled_patch16_384, image_size=384 через resize processed_printer_dataset, flow_steps=8, hidden_ratio=0.5, 40 epochs, lr=3e-5, batch_size=10, grad_clip_norm=10.0, image score = mean top 49152 pixels.
+Комментарий: top_k_pixels=49152 выбран по предыдущему DeiT try_3 sweep как лучший по AUROC. Новый try_4 нужен для проверки устойчивости выбранного top-k на заново обученной модели; это не снимает полностью test-set tuning.

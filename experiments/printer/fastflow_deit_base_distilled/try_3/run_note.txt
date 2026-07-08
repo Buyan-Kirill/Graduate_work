@@ -1,0 +1,3 @@
+Цель запуска: fair comparison FastFlow с DeiT на тех же тайлах, что и ResNet18.
+Ключевые настройки: backbone deit_base_distilled_patch16_384, вход 384x384 через resize из processed_printer_dataset, 8 flow steps, hidden_ratio=0.5, light augmentation без RandomResizedCrop и RandomErasing, 40 эпох, lr=3e-5, batch_size=10, image score по 65 top-pixels.
+Комментарий: Для transformer-backbone не копируем ResNet18-гиперпараметры. Снижаем capacity flow-блоков и lr, увеличиваем число шагов оптимизации, а датасет фиксируем тем же, что у ResNet18. Top-k для image score задан в абсолютных пикселях: это эквивалент ResNet18 baseline k=0.001 на 256x256 и не размывает локальный дефект из-за входа 384x384.
