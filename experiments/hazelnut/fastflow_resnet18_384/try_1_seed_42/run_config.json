@@ -1,0 +1,41 @@
+{
+  "class_name": "hazelnut",
+  "config_name": "resnet18_384",
+  "seed": 42,
+  "try_number": 1,
+  "config": {
+    "tag": "fastflow_resnet18_384",
+    "backbone": "resnet18",
+    "image_size": 384,
+    "flow_steps": 10,
+    "hidden_ratio": null,
+    "num_epochs": 30,
+    "learning_rate": 0.001,
+    "weight_decay": 0.001,
+    "eta_min": 1e-06,
+    "batch_size": 8,
+    "grad_clip_norm": null
+  },
+  "split_summary": {
+    "train_good": 351,
+    "normal_val_good": 40,
+    "labeled_val": 55,
+    "labeled_test": 55,
+    "labeled_val_by_type": {
+      "crack": 9,
+      "cut": 8,
+      "good": 20,
+      "hole": 9,
+      "print": 9
+    },
+    "labeled_test_by_type": {
+      "crack": 9,
+      "cut": 9,
+      "good": 20,
+      "hole": 9,
+      "print": 8
+    }
+  },
+  "top_k_selection": "validation image_roc_auc, tie by AP/cohens_d/smaller k",
+  "threshold_percentile": 95
+}

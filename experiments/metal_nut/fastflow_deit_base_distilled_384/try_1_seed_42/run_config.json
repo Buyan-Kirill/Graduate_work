@@ -1,0 +1,39 @@
+{
+  "class_name": "metal_nut",
+  "config_name": "deit_base_distilled_384",
+  "seed": 42,
+  "try_number": 1,
+  "config": {
+    "tag": "fastflow_deit_base_distilled_384",
+    "backbone": "deit_base_distilled_patch16_384",
+    "image_size": 384,
+    "flow_steps": 8,
+    "hidden_ratio": 0.5,
+    "num_epochs": 40,
+    "learning_rate": 3e-05,
+    "weight_decay": 1e-05,
+    "eta_min": 1e-06,
+    "batch_size": 8,
+    "grad_clip_norm": 10.0
+  },
+  "split_summary": {
+    "train_good": 198,
+    "normal_val_good": 22,
+    "labeled_val": 46,
+    "labeled_test": 46,
+    "labeled_val_by_type": {
+      "bent": 12,
+      "color": 11,
+      "good": 11,
+      "scratch": 12
+    },
+    "labeled_test_by_type": {
+      "bent": 13,
+      "color": 11,
+      "good": 11,
+      "scratch": 11
+    }
+  },
+  "top_k_selection": "validation image_roc_auc, tie by AP/cohens_d/smaller k",
+  "threshold_percentile": 95
+}

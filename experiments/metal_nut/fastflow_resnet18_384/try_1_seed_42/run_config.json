@@ -1,0 +1,39 @@
+{
+  "class_name": "metal_nut",
+  "config_name": "resnet18_384",
+  "seed": 42,
+  "try_number": 1,
+  "config": {
+    "tag": "fastflow_resnet18_384",
+    "backbone": "resnet18",
+    "image_size": 384,
+    "flow_steps": 10,
+    "hidden_ratio": null,
+    "num_epochs": 30,
+    "learning_rate": 0.001,
+    "weight_decay": 0.001,
+    "eta_min": 1e-06,
+    "batch_size": 8,
+    "grad_clip_norm": null
+  },
+  "split_summary": {
+    "train_good": 198,
+    "normal_val_good": 22,
+    "labeled_val": 46,
+    "labeled_test": 46,
+    "labeled_val_by_type": {
+      "bent": 12,
+      "color": 11,
+      "good": 11,
+      "scratch": 12
+    },
+    "labeled_test_by_type": {
+      "bent": 13,
+      "color": 11,
+      "good": 11,
+      "scratch": 11
+    }
+  },
+  "top_k_selection": "validation image_roc_auc, tie by AP/cohens_d/smaller k",
+  "threshold_percentile": 95
+}

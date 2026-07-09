@@ -1,0 +1,22 @@
+{
+  "class_name": "metal_nut",
+  "config_name": "deit_base_distilled_384",
+  "seed": 42,
+  "selected_top_k_pixels": 1024,
+  "selected_top_k_fraction": 0.006944444444444444,
+  "val_selected_image_roc_auc": 1.0,
+  "val_selected_image_average_precision": 1.0,
+  "val_image_roc_auc": 1.0,
+  "val_image_average_precision": 1.0,
+  "val_balanced_accuracy_at_threshold": 0.9545454545454546,
+  "test_image_roc_auc": 0.9948051948051948,
+  "test_image_average_precision": 0.998390022675737,
+  "test_cohens_d": 3.3185245379286568,
+  "test_threshold": -0.42721642553806305,
+  "test_balanced_accuracy_at_val_threshold": 0.8636363636363636,
+  "test_fpr_at_val_threshold": 0.2727272727272727,
+  "test_fnr_at_val_threshold": 0.0,
+  "pixel_roc_auc": 0.9726620755674467,
+  "pixel_average_precision": 0.6851063705837976,
+  "pixel_num_images": 35
+}
