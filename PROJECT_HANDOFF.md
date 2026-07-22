@@ -38,16 +38,20 @@ than speculation.
 - Never move, delete, or overwrite original dataset files. Review folders are
   copies and are not model inputs.
 - The locked test has not been read by the new protocol.
-- Completed training count: 3. One additional attempt failed before training
+- Completed training count: 4. One additional attempt failed before training
   because network metadata access was unavailable and is preserved in ledger.
 - Completed calibration controls: `resnet18_256`, seed 42 has primary ROC AUC
   `0.914659090909091`; `resnet18_384`, seed 42 has `0.9198863636363637`.
   Both selected the full anomaly map as top-k.
 - Completed DeiT-384 seed 42 calibration has primary ROC AUC
   `0.8731818181818182` and also selects the full map. Its clipping threshold
-  `10.0` was exceeded in every batch, so a no-clipping single-factor ablation
-  is the next approved calibration-only diagnostic before paired seed 123.
-- Current execution/protocol base commit: `20b4450`.
+  `10.0` was exceeded in every batch. A completed no-clipping ablation lowers
+  normal-val loss by `20.7%` but changes primary AUC by only `+0.002159` and
+  worsens threshold balanced accuracy, so clipping does not explain the
+  ResNet ranking advantage. Do not repeat no-clip at seed 123.
+- Next sequence: ResNet18-384 seed 123 (`try_3`), then original clipped DeiT
+  seed 123 (`try_2`), one process at a time. Test remains locked.
+- Current execution/protocol base commit: `f848062`.
 
 ### Non-negotiable execution limits
 

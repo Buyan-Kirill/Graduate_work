@@ -22,8 +22,8 @@ Numbers are included only with a path to their source artifact.
 | ID | Hypothesis | Status | Evidence required | Current decision |
 |---|---|---|---|---|
 | H1 | Matching ResNet18 input resolution from 256 to 384 materially changes printer calibration quality. | not supported on seed 42 | ResNet18-384 changed primary calibration ROC AUC by only `+0.005227` and source-image ROC AUC by `0.0` versus ResNet18-256. | Treat ResNet18-384 as the fair matched control, not as a demonstrated resolution improvement. Do not spend a run repeating ResNet18-256. |
-| H2 | The MVTec-tested DeiT optimizer recipe trains stably on the printer dataset. | inconclusive: numerically stable, clipping saturated | DeiT seed 42 has smooth improving train/normal-val loss, but clipping is active in 100% of batches and best loss is at epoch 40. | Test one no-clipping ablation with every other setting fixed before attributing the ranking gap to representation. |
-| H3 | The main DeiT gap, if present, is representation/spatial-resolution related rather than optimizer failure. | pending | DeiT seed 42 ranks worse than ResNet18-384 by `-0.046705` primary AUC, but saturated clipping is an optimization confound. | Reassess after the single-factor clipping ablation; do not change architecture yet. |
+| H2 | The MVTec-tested DeiT optimizer recipe trains stably on the printer dataset. | supported for numerical stability; clipping is unnecessary for stability | Removing clipping lowers final normal-val loss by `20.7%` without divergence, but changes primary calibration AUC by only `+0.002159`; clipped/no-clip score Spearman correlation is `0.988102`. | Do not repeat no-clip at seed 123. Use the original recipe for the predeclared paired-seed baseline and treat clipping as not causal for the ranking gap. |
+| H3 | The main DeiT gap, if present, is representation/spatial-resolution related rather than optimizer failure. | supported on seed 42; cross-seed confirmation pending | Both stable DeiT variants trail ResNet18-384 primary AUC by `-0.046705` and `-0.044545`; a `20.7%` likelihood improvement barely changes ranking. | Run the paired ResNet18/DeiT seed 123 controls before making a cross-seed representation conclusion. |
 | H4 | A selected top-k is a stable property rather than calibration overfit. | inconclusive | Both ResNet resolutions at seed 42 select the full map and rise toward it, but they share seed and calibration groups. | Check DeiT and second paired seed; never choose top-k from test. |
 
 Architecture fact relevant to H3: in the current Anomalib FastFlow
@@ -143,6 +143,48 @@ Sources:
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_1_seed_42/calibration_metrics.json`
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_1_seed_42/calibration_report.json`
 
+### Run 4: DeiT-384 no-clipping ablation, seed 42
+
+- Status: completed train + calibration; source validation passed; locked test
+  inference was not run.
+- Training duration: `1199.5594227000001` seconds; full train/calibration stage
+  elapsed by file timestamps: `1202.7186421` seconds.
+- Peak allocated CUDA memory: `1277.87255859375` MiB.
+- Best epoch/loss: `40 / 40`, `77184.96472167969`.
+- The only behavioral config change from Run 3 is
+  `grad_clip_norm: 10.0 -> None`; name/tag differ only for provenance.
+- Versus clipped DeiT, final normal-val loss is `20195.0155029297` lower
+  (`20.7%`), confirming that clipping materially constrained likelihood
+  optimization.
+- Selected top-k remains full map, `147456 / 147456` (`1.0`).
+- Calibration source-group-balanced tile ROC AUC: `0.875340909090909`, only
+  `+0.0021590909090908` versus clipped DeiT and `-0.0445454545454547` versus
+  ResNet18-384.
+- Object/source-image ROC AUC: `0.93 / 0.80`; differences versus clipped DeiT
+  are `+0.005 / 0.0`.
+- Threshold balanced accuracy is `0.7022727272727272`, down from
+  `0.7113636363636363` with clipping. Tile ROC AUC/AP also decrease from
+  `0.895238/0.794407` to `0.888095/0.771031`.
+- Clipped/no-clip calibration scores have Pearson correlation `0.990304` and
+  Spearman correlation `0.988102` across the same 61 images.
+- Training, top-k and score-distribution plots were visually checked and are
+  consistent with source CSV/JSON.
+
+Interpretation: clipping was not required for stability and strongly affected
+the likelihood scale, but it did not cause the anomaly-ranking deficit. The
+small primary-AUC increase is mixed with worse AP/threshold evidence and is
+too small to select no-clip from a 5+5-source calibration set. This diagnostic
+will not be repeated at seed 123.
+
+Sources:
+
+- `fastflow_deit_base_distilled_384_no_clip_printer384_v2_final/try_1_seed_42/run_note.md`
+- `fastflow_deit_base_distilled_384_no_clip_printer384_v2_final/try_1_seed_42/train_history.csv`
+- `fastflow_deit_base_distilled_384_no_clip_printer384_v2_final/try_1_seed_42/training_summary.json`
+- `fastflow_deit_base_distilled_384_no_clip_printer384_v2_final/try_1_seed_42/calibration_selection.json`
+- `fastflow_deit_base_distilled_384_no_clip_printer384_v2_final/try_1_seed_42/calibration_metrics.json`
+- `fastflow_deit_base_distilled_384_no_clip_printer384_v2_final/try_1_seed_42/calibration_report.json`
+
 ## Decision log
 
 | Date | Evidence available | Decision | Reason |
@@ -152,6 +194,7 @@ Sources:
 | 2026-07-23 | Attempt 2 failed before training; both backbones then built from the existing local cache in offline mode. | Preserve failed `try_1`; retry ResNet18-384 seed 42 as `try_2` with process-local `HF_HUB_OFFLINE=1`. | Use the same Anomalib/timm model path as the notebooks without changing proxy/VPN settings or downloading different weights. |
 | 2026-07-23 | Completed ResNet18-384 seed 42: primary calibration ROC AUC `0.919886`, only `+0.005227` over ResNet18-256; both select full-map top-k. | Proceed to DeiT-384 seed 42 with the frozen MVTec-tested recipe. | Resolution alone did not materially change this seed; the matched ResNet control is valid and no extra 256 run is justified. |
 | 2026-07-23 | Completed DeiT-384 seed 42: primary AUC `0.873182`, `-0.046705` versus matched ResNet; smooth loss but clipping active in `100%` of batches. | Run one DeiT-384 no-clipping ablation at seed 42 with all other settings fixed. | The baseline ranking gap is real on calibration, but saturated clipping is a measured optimizer confound. A single-factor ablation is more informative than blindly adding seeds or changing architecture. |
+| 2026-07-23 | No-clip DeiT lowers normal-val loss by `20.7%`, but primary AUC changes only `+0.002159`, source AUC is unchanged, threshold accuracy is worse, and score Spearman correlation is `0.988102`. | Do not promote or repeat no-clip. Run the predeclared ResNet18-384/DeiT baseline pair at seed 123. | The clipping hypothesis is resolved without parameter fishing: clipping is not needed for stability, but it does not explain the ranking gap. A second paired seed now tests whether the gap is reproducible. |
 
 ## Update checklist after each attempt
 
