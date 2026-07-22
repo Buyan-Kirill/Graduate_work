@@ -1,0 +1,50 @@
+{
+  "dataset_root": "datasets/processed_printer_dataset_384",
+  "counts": {
+    "val/good": 14,
+    "val/anomalies": 14,
+    "test/good": 55,
+    "test/anomalies": 53
+  },
+  "source_group_counts": {
+    "val/good": 12,
+    "val/anomalies": 7,
+    "test/good": 23,
+    "test/anomalies": 12
+  },
+  "exact_hash_overlap": {
+    "val_vs_test": 0,
+    "fit_train_vs_eval": 0
+  },
+  "duplicate_hashes_within_split": {
+    "val": 0,
+    "test": 0
+  },
+  "shared_val_test_source_groups": {
+    "good": [
+      "normal:2025-06-25_test:141_obj11",
+      "normal:2025-06-25_test:141_obj13",
+      "normal:2025-06-25_test:141_obj9",
+      "normal:2025-06-25_test:32_obj1",
+      "normal:2025-06-25_test:32_obj11",
+      "normal:2025-06-25_test:32_obj5",
+      "normal:2025-06-25_test:32_obj7"
+    ],
+    "anomalies": [
+      "anomaly:2025-08-06_11-33-04_L0412_1",
+      "anomaly:2025-08-08_14-09-52_L0128_1",
+      "anomaly:2025-08-08_14-20-39_L0132_1",
+      "anomaly:2025-08-08_14-23-16_L0133_1",
+      "anomaly:2025-08-14_14-44-14_L0123_1",
+      "anomaly:2025-09-10_15-20-02_L0122_1",
+      "anomaly:2025-09-24_15-17-17_L0105_1"
+    ]
+  },
+  "validation_files_from_shared_source_groups": {
+    "good": 9,
+    "anomalies": 14
+  },
+  "unexpected_image_specs": [],
+  "unresolved_files": [],
+  "is_valid_locked_test_split": false
+}

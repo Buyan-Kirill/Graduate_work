@@ -1,0 +1,49 @@
+{
+  "version": "printer_384_v2",
+  "approved": false,
+  "seed": 42,
+  "normal_val_capture_fraction": 0.15,
+  "train_target": 1000,
+  "normal_val_loss_target": 160,
+  "normal_val_loss_max_per_object": 2,
+  "calibration_good_target": 40,
+  "test_good_target": 55,
+  "max_eval_images_per_object": 1,
+  "calibration_normal_capture_groups": [
+    "normal:2025-02-07_test:178",
+    "normal:2025-06-25_test:142",
+    "normal:2025-06-25_test:86",
+    "normal:2025-06-25_test:33",
+    "normal:2025-06-25_test:231"
+  ],
+  "test_normal_capture_groups": [
+    "normal:2025-02-07_test:344",
+    "normal:2025-02-07_test:60",
+    "normal:2025-06-25_test:119",
+    "normal:2025-06-25_test:120",
+    "normal:2025-06-25_test:141",
+    "normal:2025-06-25_test:143",
+    "normal:2025-06-25_test:230",
+    "normal:2025-06-25_test:32",
+    "normal:2025-06-25_test:60"
+  ],
+  "calibration_anomaly_source_groups": [
+    "anomaly:2025-08-06_11-33-04_L0412_1",
+    "anomaly:2025-08-08_14-09-52_L0128_1",
+    "anomaly:2025-09-10_15-20-02_L0122_1",
+    "anomaly:2025-09-24_14-46-03_L0097_1",
+    "anomaly:2025-09-24_15-04-12_L0102_1"
+  ],
+  "test_anomaly_source_groups": [
+    "anomaly:2025-08-06_11-40-53_L0420_1",
+    "anomaly:2025-08-08_14-20-39_L0132_1",
+    "anomaly:2025-08-08_14-23-16_L0133_1",
+    "anomaly:2025-08-14_14-33-39_L0117_1",
+    "anomaly:2025-08-14_14-44-14_L0123_1",
+    "anomaly:2025-09-10_15-37-12_L0130_1",
+    "anomaly:2025-09-24_15-17-17_L0105_1"
+  ],
+  "excluded_eval_paths": {
+    "anomalies/objects_parts/2025-08-08_14-09-52_L0128_1_tile_3072_960.png": "out-of-scope defect confirmed by domain reviewer"
+  }
+}

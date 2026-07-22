@@ -1,0 +1,11 @@
+{
+  "experiment_number": 1,
+  "git_base_commit_short": "7c1ced12ff88",
+  "git_worktree_dirty_at_start": true,
+  "execution_file_sha256": {
+    "code/fastflow_printer_pipeline.py": "f36aeb69572f4d052202bda7314b28e39110179514711961afc7b533589cdd5a",
+    "code/run_fastflow_printer_experiments.py": "515f051eb574185a2ab04767f9b42c5a5b3e92c9a475cf178bbf591c54781c9b"
+  },
+  "test_was_read": false,
+  "note": "The source tree was committed only after this run; hashes identify the exact execution files."
+}

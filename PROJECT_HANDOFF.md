@@ -1,6 +1,6 @@
 # Project Handoff Memory
 
-Last updated: 2026-05-20
+Last updated: 2026-07-22
 
 This file is meant to be pasted into a new chat so work can continue without rebuilding context.
 
@@ -42,6 +42,20 @@ Latest addition:
 - Final outputs include `test_metrics.txt`, `test_metric_comparison.csv`, real/synthetic validation visualizations, and real/synthetic test visualizations.
 
 Known current git status at time of this handoff: `experiments/metal_nut/README.md` is modified.
+
+## FastFlow Printer Update (2026-07-22)
+
+- Current dataset: `datasets/processed_printer_dataset_384`.
+- Approved leak-free manifest: `experiments/printer/dataset_v384_audit/printer_split_v2_final.csv`.
+- Split version: `printer_384_v2_final`; train/normal validation/calibration/test are disjoint by source capture, object group, and SHA-256.
+- Domain review is complete. One out-of-scope anomaly and two ambiguous normal object groups are excluded; accepted normal deviations remain as intentional hard negatives.
+- Current notebooks: `code/FastFlow_printer_resnet18.ipynb` and `code/FastFlow_printer_deit.ipynb`.
+- Shared implementation: `code/fastflow_printer_pipeline.py`.
+- Staged CLI: `code/run_fastflow_printer_experiments.py`; use `train-calibrate` first and `test` only after configurations are frozen.
+- Calibration diagnostics: `code/analyze_fastflow_printer_calibration.py`.
+- Run three paired seeds: 42, 123, 2025. Select top-k only on calibration and never tune from test.
+- After locked test, run `code/analyze_fastflow_printer_results.py` for paired hierarchical-bootstrap comparison.
+- Full protocol and limitations: `experiments/printer/fastflow_printer384_v2_protocol.md`.
 
 ## Long Memory
 

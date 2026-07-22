@@ -9,6 +9,7 @@
 - `3D_printer_wide_resnet/` - ранние FastFlow/backbone-запуски с Wide ResNet.
 - `3D_printer_resnet_18/` - ранние FastFlow/backbone-запуски с ResNet-18.
 - `3D_printer_transformer/` - ранняя проверка transformer-подхода.
+- `printer/` - исторические и текущие FastFlow-запуски на датасете принтера; новый protocol использует отдельные теги `*_printer384_v2_final` и не перезаписывает legacy-результаты.
 - `3D_printer_supersimplenet/` - базовый SuperSimpleNet на датасете 3D-принтера.
 - `3D_printer_supersimplenet_head_finetune/` - текущие эксперименты SuperSimpleNet с fine-tuning.
 
@@ -18,6 +19,17 @@
 - `middle_logs/` - чекпоинты, промежуточные метрики, визуализации по эпохам.
 - `trained_model*.pth` - сохраненные модели/веса.
 - `*.png` - графики loss/metrics и примеры карт аномалий.
+
+## Current FastFlow printer protocol
+
+- Полное описание: `printer/fastflow_printer384_v2_protocol.md`.
+- Зафиксированный split и аудит: `printer/dataset_v384_audit/`.
+- Top-k выбирается только на labeled calibration; threshold — только по normal calibration scores.
+- Test оценивается один раз с зафиксированным post-processing.
+- Основная метрика сравнения — source-image-balanced tile ROC AUC; дополнительно сохраняются обычные tile, object и source-image метрики.
+- Неопределённость оценивается cluster bootstrap по исходным съёмкам и парным bootstrap по трём training seed.
+- Реестр автономных запусков: `printer/printer384_v2_experiment_ledger.csv`.
+- Для ручной проверки каждый новый run содержит описание, source-validated calibration report и статические графики loss, top-k и scores.
 
 
 ## Current SSN evaluation logic

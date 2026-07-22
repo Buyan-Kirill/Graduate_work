@@ -1,0 +1,17 @@
+{
+  "version": "printer_384_v1",
+  "approved": false,
+  "seed": 42,
+  "normal_val_group_fraction": 0.1,
+  "train_target": 1000,
+  "normal_val_loss_target": 160,
+  "calibration_good_target": 40,
+  "calibration_good_max_per_group": 2,
+  "calibration_anomaly_source_groups": [
+    "anomaly:2025-08-06_11-33-04_L0412_1",
+    "anomaly:2025-08-08_14-09-52_L0128_1",
+    "anomaly:2025-09-10_15-20-02_L0122_1",
+    "anomaly:2025-09-24_14-46-03_L0097_1",
+    "anomaly:2025-09-24_15-04-12_L0102_1"
+  ]
+}

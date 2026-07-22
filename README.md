@@ -17,7 +17,8 @@
 
 - `datasets/MVTecAD/` - стенд для проверки гипотез и pixel-level оценки.
 - `datasets/3d_printer_dataset/` - основной прикладной датасет с изображениями 3D-принтера.
-- `datasets/processed_printer_dataset/` - локально подготовленная выборка для обучения.
+- `datasets/processed_printer_dataset/` - legacy-версия подготовленной выборки.
+- `datasets/processed_printer_dataset_384/` - текущая выборка для честного сравнения FastFlow ResNet18/DeiT; состав split фиксируется manifest-файлом, а не структурой папок.
 
 Базовая подготовка датасета 3D-принтера:
 
@@ -36,6 +37,7 @@ pip install numpy pillow tqdm
 ## Что смотреть
 
 - MVTec-гипотезы: `experiments/metal_nut/`, `experiments/hazelnut/`.
+- Текущий FastFlow-протокол на принтере: `experiments/printer/fastflow_printer384_v2_protocol.md`.
 - Ранние backbone/FastFlow проверки: `experiments/3D_printer_wide_resnet/`, `experiments/3D_printer_resnet_18/`, `experiments/3D_printer_transformer/`.
 - Текущие SuperSimpleNet эксперименты: `experiments/3D_printer_supersimplenet/`, `experiments/3D_printer_supersimplenet_head_finetune/`.
 

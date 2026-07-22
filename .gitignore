@@ -18,6 +18,7 @@ datasets/*
 *.ckpt
 
 # Ignore large generated visualization folders.
+experiments/printer/_pipeline_smoke_*/
 experiments/**/middle_logs/visualization/
 experiments/**/visualization/
 experiments/**/visualizations/

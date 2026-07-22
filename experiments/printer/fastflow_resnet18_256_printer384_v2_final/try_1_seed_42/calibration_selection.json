@@ -1,0 +1,24 @@
+{
+  "image_size": 256,
+  "num_pixels": 65536,
+  "selected_top_k_pixels": 65536,
+  "selected_top_k_fraction": 1.0,
+  "threshold_quantile": 0.95,
+  "threshold": -0.4937604904174805,
+  "top_k_grid": [
+    1,
+    33,
+    66,
+    164,
+    328,
+    655,
+    1638,
+    3277,
+    4096,
+    6554,
+    13107,
+    21845,
+    32768,
+    65536
+  ]
+}

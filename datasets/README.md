@@ -137,6 +137,36 @@ processed_printer_dataset/
 - Image-level метрики можно считать, если нормальные фрагменты брать из `training/*/objects_parts/`, а аномальные - из `anomalies/objects_parts/`.
 - Если модель ожидает MVTec-подобный объект класса, для 3D-принтера лучше завести один pseudo-class, например `printer`, и внутри него использовать подготовленные `training/` и `anomalies/`.
 
+## Текущий FastFlow split на данных принтера
+
+Для сравнения FastFlow ResNet18 и DeiT используется
+`datasets/processed_printer_dataset_384/`. Файлы в этой папке не перемещаются
+между физическими train/calibration/test-каталогами: принадлежность к выборке
+задаёт manifest
+`experiments/printer/dataset_v384_audit/printer_split_v2_final.csv`.
+
+Версия split: `printer_384_v2_final`. Состав:
+
+| Split | Good | Anomalies | Независимые исходные съёмки |
+|---|---:|---:|---:|
+| train | 1000 | 0 | 212 |
+| normal_val_loss | 160 | 0 | 44 |
+| calibration | 40 | 21 | 5 good + 5 anomalous |
+| test | 53 | 45 | 9 good + 7 anomalous |
+
+Основная единица разделения нормальных данных — исходное изображение, а не
+тайл. Для аномалий единица разделения — исходная съёмка. Между split нет
+пересечений по исходной съёмке, object group и SHA-256. `normal_val_loss`
+используется только для выбора checkpoint по normal likelihood; labeled
+`calibration` — для top-k и порога; `test` остаётся закрытым до фиксации этих
+параметров.
+
+Папки `_review_split_*` внутри локального датасета — только визуальные копии
+для ручной проверки и не читаются обучающим pipeline. Оставшиеся допустимые
+отклонения в `good` намеренно сохранены как hard negatives. Решения ручной
+проверки записаны в
+`experiments/printer/dataset_v384_audit/printer_split_v2_final_domain_review.md`.
+
 ## Legacy: filtered printer dataset
 
 Путь: `datasets/filtered_printer_dataset/`.
