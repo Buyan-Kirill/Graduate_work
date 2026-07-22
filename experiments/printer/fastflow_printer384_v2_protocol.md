@@ -110,6 +110,9 @@ Important limitations:
 - Hard stop: 15 training runs or 16 hours of total autonomous work.
 - Every run must have a separate directory, `run_note.md`, `run_config.json`,
   epoch history, calibration artifacts and a validated calibration report.
+- Training and locked test require a clean Git worktree. The run records the
+  commit, pipeline/CLI hashes, relevant package and CUDA/GPU versions,
+  deterministic mode, and peak allocated CUDA memory.
 - The central run list is `printer384_v2_experiment_ledger.csv`.
 - `code/report_fastflow_printer_calibration.py` verifies source consistency and
   creates loss/LR, top-k and score-distribution plots without modifying the
@@ -117,6 +120,9 @@ Important limitations:
 - Failed or worse-than-expected runs remain in the ledger and final report.
 - No value may be copied into a summary unless it can be traced to a saved
   training/evaluation artifact.
+- Model weights and resumable checkpoints remain local under the `*.pth`
+  ignore rule. Compact metrics, provenance, Markdown reports and selected PNG
+  plots are versioned; batch logs, activations and full anomaly maps are not.
 
 ## Run order
 

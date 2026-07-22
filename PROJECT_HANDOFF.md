@@ -8,9 +8,8 @@ This file is meant to be pasted into a new chat so work can continue without reb
 
 ### Approval state
 
-- This runbook is prepared for review only.
-- Do not start another training run or read the locked test until the user
-  explicitly approves this plan.
+- Autonomous work was approved on 2026-07-23 after reducing the seed matrix
+  and adding explicit anti-overfitting, provenance, and notebook requirements.
 
 ### Objective and honest acceptance criteria
 
@@ -51,7 +50,10 @@ than speculation.
   `nvidia-smi` before every run.
 - Normal run duration should be at most about 40 minutes. Investigate a run
   that materially exceeds this before starting another one.
-- Target total budget: 10-12 training runs, including the completed run.
+- Expected core budget: 5 runs including the completed run; at most 7 when a
+  third paired seed is needed. Allow at most 2 evidence-based follow-up runs,
+  for an expected total no larger than 9.
+- The earlier 10-12 run allowance is a ceiling, not a target.
 - Hard stop: 15 training runs or 16 hours of autonomous work, whichever comes
   first. At that point, stop and write conclusions from available evidence.
 - Do not perform broad hyperparameter search. Every follow-up must test a
@@ -89,19 +91,22 @@ Phase A, resolution/backbone comparison on seed 42:
 4. Stop for a decision gate. Do not launch all remaining seeds blindly if the
    first DeiT run is invalid, unstable, or exposes an implementation issue.
 
-Phase B, paired reproducibility runs after Phase A passes validation:
+Phase B, paired reproducibility after Phase A passes validation:
 
-5. Complete seeds 123 and 2025 for `resnet18_256`.
-6. Complete seeds 123 and 2025 for `resnet18_384`.
-7. Complete seeds 123 and 2025 for `deit_base_distilled_384`.
+5. Run `resnet18_384`, seed 123.
+6. Run `deit_base_distilled_384`, seed 123.
+7. Compare both paired seeds. Add seed 2025 for both primary systems only if
+   the ordering is inconsistent, variability is material, or one run is
+   technically invalid.
 
-This produces 9 baseline runs in total: three configs times three seeds. Run
-order inside Phase B may alternate backbones by seed, but training remains
-strictly sequential.
+The historical `resnet18_256`, seed 42 run remains a secondary reference and
+is not repeated. The normal core therefore contains 5 total runs: that
+historical run plus two paired seeds for ResNet18-384 and DeiT-384. The maximum
+core contains 7 total runs when the third paired seed is justified.
 
 ### Calibration-only decision gate
 
-After every run, and again after the 9-run baseline matrix:
+After every run, and again after the paired baseline matrix:
 
 - Verify all report values against `train_history.csv`,
   `training_summary.json`, `calibration_selection.json`,
@@ -123,8 +128,10 @@ After every run, and again after the 9-run baseline matrix:
 
 ### Targeted follow-ups
 
-Reserve at most 3 training runs after the 9-run baseline matrix. Select them
-only from observed evidence and document the hypothesis before execution.
+Reserve at most 2 training runs after the paired baseline matrix. They may
+evaluate at most one alternative DeiT recipe, first on seed 42 and then on seed
+123 only if the first result supports the predeclared hypothesis. Select the
+alternative only from calibration evidence and document it before execution.
 
 - Optimization follow-up only if DeiT training diagnostics show instability
   or under-training: change one of LR, schedule/epochs, or clipping behavior,
@@ -137,6 +144,11 @@ only from observed evidence and document the hypothesis before execution.
 - If calibration evidence is too noisy to choose among alternatives, do not
   spend runs on parameter fishing; retain the baseline and report uncertainty.
 
+To limit adaptive overfitting to the small calibration split, do not test a
+second alternative recipe, do not change multiple factors in one run, and do
+not choose a single lucky seed. Choose a final recipe from aggregate paired-seed
+calibration evidence plus top-k/threshold stability, then freeze it.
+
 ### Freeze and locked test
 
 1. Freeze all compared configs, checkpoints, top-k values, thresholds, seeds,
@@ -144,6 +156,9 @@ only from observed evidence and document the hypothesis before execution.
 2. Push that commit by explicit HTTPS URL.
 3. Run the `test` stage once for every frozen run, sequentially. The test stage
    must load `calibration_selection.json` and must not select top-k/threshold.
+   Here "locked" means no test image decoding, inference, score inspection, or
+   metric computation before freeze; manifest metadata and integrity hashes
+   may be accessed by validation code.
 4. Run `code/analyze_fastflow_printer_results.py` without an implicit ROC AUC
    margin. Save raw differences, paired intervals, and exact threshold errors.
 5. Test results may be used for final error analysis, but not for another
@@ -167,6 +182,33 @@ ledger row. Preserve at least:
 Update `experiments/printer/printer384_v2_experiment_ledger.csv` after every
 attempt, including failures and elapsed time. Before citing a number, trace it
 to the source artifact and verify report consistency/hashes.
+
+Before run 2, keep provenance lightweight but sufficient:
+
+- require a clean Git commit at training start so the commit identifies all
+  source code; also save hashes of the pipeline and CLI entry point;
+- save only relevant software versions, Python/PyTorch/CUDA information, GPU
+  model, deterministic mode, and peak allocated CUDA memory;
+- retain per-epoch loss/LR/duration and DeiT gradient norm/clipping summaries;
+- do not save batch-level logs, activations, full anomaly-map tensors, embedded
+  notebook images, or a full `pip freeze` unless needed for diagnosis;
+- keep weights and resumable checkpoints locally under the existing `*.pth`
+  ignore rule; commit compact CSV/JSON/Markdown reports and selected PNG plots.
+
+### Final reproducibility notebook
+
+After the final ResNet18 and DeiT recipes are frozen, create one concise
+`code/FastFlow_printer_final_reproduction.ipynb` that:
+
+- pins/displays the manifest hash, Git commit, exact config, and chosen seed;
+- calls the shared pipeline rather than duplicating training implementation;
+- defaults to a new run directory and refuses overwrite;
+- separates `train_calibrate`, locked `test`, and `load/report` modes;
+- displays training curves, top-k calibration behavior, score distributions,
+  final metrics, and representative error examples after test;
+- reproduces the final selected recipes, not a seed cherry-picked by test;
+- is committed with outputs cleared so Git stores the executable notebook code
+  without heavy embedded artifacts. Generated results remain in run folders.
 
 ### Git and versioning rules
 

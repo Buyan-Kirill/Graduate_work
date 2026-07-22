@@ -1,10 +1,12 @@
 import hashlib
 import json
 import os
+import platform
 import random
 import subprocess
 import time
 from datetime import datetime, timezone
+from importlib import metadata
 from pathlib import Path
 
 import numpy as np
@@ -179,6 +181,50 @@ def git_provenance(project_root):
     return {
         "git_commit": commit,
         "git_worktree_dirty": bool(status.strip()),
+    }
+
+
+def runtime_environment(device):
+    def package_version(package):
+        try:
+            return metadata.version(package)
+        except metadata.PackageNotFoundError:
+            return None
+
+    cuda_device = device.type == "cuda"
+    return {
+        "python": platform.python_version(),
+        "packages": {
+            package: package_version(package)
+            for package in (
+                "anomalib",
+                "numpy",
+                "pandas",
+                "scikit-learn",
+                "torch",
+                "torchvision",
+            )
+        },
+        "torch_cuda": torch.version.cuda,
+        "cudnn": torch.backends.cudnn.version(),
+        "gpu_name": torch.cuda.get_device_name(device) if cuda_device else None,
+        "gpu_total_memory_mib": (
+            int(torch.cuda.get_device_properties(device).total_memory / 1024**2)
+            if cuda_device
+            else None
+        ),
+    }
+
+
+def execution_file_hashes(project_root):
+    files = (
+        Path("code/fastflow_printer_pipeline.py"),
+        Path("code/run_fastflow_printer_experiments.py"),
+    )
+    return {
+        path.as_posix(): file_sha256(project_root / path)
+        for path in files
+        if (project_root / path).is_file()
     }
 
 
@@ -426,6 +472,8 @@ def load_model_weights(model, weights_path, device):
 def train_fastflow(model, train_dataset, normal_val_dataset, config, log_dir, seed, device):
     training_started = time.perf_counter()
     model = model.to(device)
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
     freeze_feature_extractor(model)
     parameters = trainable_parameters(model)
     criterion = FastflowLoss()
@@ -547,16 +595,19 @@ def train_fastflow(model, train_dataset, normal_val_dataset, config, log_dir, se
 
     load_model_weights(model, best_weights_path, device)
     pd.DataFrame(history).to_csv(Path(log_dir) / "train_history.csv", index=False)
-    save_json(
-        Path(log_dir) / "training_summary.json",
-        {
-            "best_epoch": best_epoch,
-            "best_normal_val_loss": best_val_loss,
-            "final_train_loss": history[-1]["train_loss"],
-            "final_normal_val_loss": history[-1]["normal_val_loss"],
-            "training_duration_seconds": float(time.perf_counter() - training_started),
-        },
-    )
+    summary = {
+        "best_epoch": best_epoch,
+        "best_normal_val_loss": best_val_loss,
+        "final_train_loss": history[-1]["train_loss"],
+        "final_normal_val_loss": history[-1]["normal_val_loss"],
+        "training_duration_seconds": float(time.perf_counter() - training_started),
+        "peak_cuda_memory_mib": (
+            float(torch.cuda.max_memory_allocated(device) / 1024**2)
+            if device.type == "cuda"
+            else None
+        ),
+    }
+    save_json(Path(log_dir) / "training_summary.json", summary)
     return model
 
 
@@ -1014,6 +1065,7 @@ def calibration_has_artifacts(log_dir):
 
 def test_has_artifacts(log_dir):
     artifact_names = {
+        "test_execution_provenance.json",
         "test_scores.csv",
         "test_metrics.json",
         "test_metrics.txt",
@@ -1072,6 +1124,12 @@ def run_experiment(
         raise ValueError("At least one experiment stage must be enabled")
     seed_everything(seed, deterministic=deterministic)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    project_root = Path(__file__).resolve().parents[1]
+    git_state = git_provenance(project_root)
+    if (run_training or run_test) and git_state["git_worktree_dirty"] is not False:
+        raise RuntimeError(
+            "Training/test requires a clean Git worktree for reproducible source code"
+        )
     manifest, split_config = load_approved_manifest(
         dataset_root,
         manifest_path,
@@ -1108,17 +1166,28 @@ def run_experiment(
         )
         for split in ("train", "normal_val_loss", "calibration", "test")
     }
+    execution_provenance = {
+        "started_at_utc": datetime.now(timezone.utc).isoformat(),
+        **git_state,
+        "execution_file_sha256": execution_file_hashes(project_root),
+        "runtime_environment": runtime_environment(device),
+        "deterministic": bool(deterministic),
+        "test_inference_executed": bool(run_test),
+    }
     run_config = {
         "config": config,
         "seed": seed,
         "try_number": try_number,
-        "started_at_utc": datetime.now(timezone.utc).isoformat(),
+        "started_at_utc": execution_provenance["started_at_utc"],
         "device": str(device),
+        "deterministic": bool(deterministic),
         "split_version": split_config["version"],
         "manifest_sha256": file_sha256(manifest_path),
         "split_config_sha256": file_sha256(split_config_path),
-        "pipeline_sha256": file_sha256(Path(__file__).resolve()),
-        **git_provenance(Path(__file__).resolve().parents[1]),
+        "pipeline_sha256": execution_provenance["execution_file_sha256"][
+            "code/fastflow_printer_pipeline.py"
+        ],
+        **git_state,
         "split_counts": {split: len(dataset) for split, dataset in datasets.items()},
         "split_class_counts": {
             f"{split}/{class_name}": int(len(rows))
@@ -1152,6 +1221,10 @@ def run_experiment(
     else:
         save_json(run_config_path, run_config)
         if run_training:
+            save_json(
+                log_dir / "execution_provenance.json",
+                execution_provenance,
+            )
             write_run_note(log_dir / "run_note.md", run_config)
     print(json.dumps({"log_dir": str(log_dir), **run_config}, ensure_ascii=False, indent=2))
 
@@ -1199,4 +1272,5 @@ def run_experiment(
             bootstrap_iterations=bootstrap_iterations,
         )
         result.update(test_metrics)
+        save_json(log_dir / "test_execution_provenance.json", execution_provenance)
     return result

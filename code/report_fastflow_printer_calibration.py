@@ -14,6 +14,7 @@ from fastflow_printer_pipeline import file_sha256
 
 SOURCE_FILES = (
     "run_config.json",
+    "execution_provenance.json",
     "train_history.csv",
     "training_summary.json",
     "calibration_selection.json",
