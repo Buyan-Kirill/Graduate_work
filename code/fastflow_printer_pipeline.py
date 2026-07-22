@@ -95,10 +95,19 @@ PRINTER_CONFIGS = {
         "num_workers": 0,
     },
 }
+PRINTER_CONFIGS["deit_base_distilled_384_no_clip"] = {
+    **PRINTER_CONFIGS["deit_base_distilled_384"],
+    "name": "deit_base_distilled_384_no_clip",
+    "tag": "fastflow_deit_base_distilled_384_no_clip_printer384_v2_final",
+    "grad_clip_norm": None,
+}
 CONFIG_ROLES = {
     "resnet18_256": "historical printer baseline at 256 input",
     "resnet18_384": "resolution-matched ResNet18 control for DeiT-384",
     "deit_base_distilled_384": "transformer candidate using the MVTec-tested recipe",
+    "deit_base_distilled_384_no_clip": (
+        "single-factor DeiT clipping ablation after saturated baseline clipping"
+    ),
 }
 
 

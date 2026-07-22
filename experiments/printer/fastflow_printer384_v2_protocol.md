@@ -43,16 +43,23 @@ visual `_review_split_*` folders are copies only and are not training inputs.
 | resnet18_256 | 256 | 14 | 10 | 1e-3 | 1e-3 | 8 | none |
 | resnet18_384 | 384 | 30 | 10 | 1e-3 | 1e-3 | 8 | none |
 | deit_base_distilled_384 | 384 | 40 | 8 | 3e-5 | 1e-5 | 10 | 10.0 |
+| deit_base_distilled_384_no_clip | 384 | 40 | 8 | 3e-5 | 1e-5 | 10 | none |
 
 `resnet18_256` preserves the historical printer baseline.
 `resnet18_384` is the primary resolution-matched control. DeiT uses the
 architecture-specific recipe that succeeded in the MVTec comparison rather
 than copying ResNet optimizer settings. No train augmentation is enabled in
 this comparison. Gradient clipping activity for DeiT is logged per epoch.
+The no-clipping DeiT configuration is a single-factor diagnostic added only
+after the baseline exceeded clip norm 10.0 in every training batch. It is not
+part of an open hyperparameter sweep.
 
-Each system is trained with seeds 42, 123, and 2025. The pretrained feature
-extractor is frozen. The best checkpoint is selected only by likelihood loss
-on disjoint normal data in `normal_val_loss`.
+The primary ResNet18-384 and selected DeiT recipe use paired seeds 42 and 123.
+Seed 2025 is added for both only if ordering or variance across the first pair
+is materially unstable. A diagnostic recipe is repeated at seed 123 only if
+its seed-42 calibration result supports its predeclared hypothesis. The
+pretrained feature extractor is frozen. The best checkpoint is selected only
+by likelihood loss on disjoint normal data in `normal_val_loss`.
 
 ## Calibration and locked test
 
