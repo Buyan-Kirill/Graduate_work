@@ -183,6 +183,13 @@ Update `experiments/printer/printer384_v2_experiment_ledger.csv` after every
 attempt, including failures and elapsed time. Before citing a number, trace it
 to the source artifact and verify report consistency/hashes.
 
+The central evidence memory is
+`experiments/printer/fastflow_printer384_v2_findings.md`. After every attempted
+run and before another training starts, update its hypothesis status, exact
+verified evidence, artifact links, contradictions, and next decision. Keep the
+individual `run_note.md` as the detailed record for that run; do not rely on
+chat memory alone.
+
 Before run 2, keep provenance lightweight but sufficient:
 
 - require a clean Git commit at training start so the commit identifies all
