@@ -123,6 +123,11 @@ Important limitations:
 - Model weights and resumable checkpoints remain local under the `*.pth`
   ignore rule. Compact metrics, provenance, Markdown reports and selected PNG
   plots are versioned; batch logs, activations and full anomaly maps are not.
+- Models are created through Anomalib `FastflowModel(pre_trained=True)`, as in
+  the printer notebooks. When network metadata access is unavailable but the
+  exact timm weights are already cached, runs use process-local
+  `HF_HUB_OFFLINE=1` and record that value in provenance; proxy/VPN settings
+  are not changed.
 
 ## Run order
 

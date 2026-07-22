@@ -21,7 +21,7 @@ Numbers are included only with a path to their source artifact.
 
 | ID | Hypothesis | Status | Evidence required | Current decision |
 |---|---|---|---|---|
-| H1 | Matching ResNet18 input resolution from 256 to 384 materially changes printer calibration quality. | pending | ResNet18-256 and ResNet18-384 seed-42 calibration reports; paired seeds if the difference affects the final comparison. | Run ResNet18-384 seed 42 next. |
+| H1 | Matching ResNet18 input resolution from 256 to 384 materially changes printer calibration quality. | pending | ResNet18-256 and ResNet18-384 seed-42 calibration reports; paired seeds if the difference affects the final comparison. | Retry ResNet18-384 seed 42 in preserved `try_2`; attempt 2 produced no training evidence. |
 | H2 | The MVTec-tested DeiT optimizer recipe trains stably on the printer dataset. | pending | DeiT loss/LR curves, best epoch, pre-clip gradient norms, clip fraction, seed consistency. | Run only after validating ResNet18-384 seed 42. |
 | H3 | The main DeiT gap, if present, is representation/spatial-resolution related rather than optimizer failure. | pending | Stable DeiT likelihood training but consistently weaker calibration ranking across paired seeds; compare with the architecture fact below. | Do not change architecture before H2 is evaluated. |
 | H4 | A selected top-k is a stable property rather than calibration overfit. | pending | Broad top-k performance plateau and similar selected region across paired seeds/backbones; source-group bootstrap/sensitivity. | Never choose top-k from test. |
@@ -54,12 +54,36 @@ Sources:
 - `fastflow_resnet18_256_printer384_v2_final/try_1_seed_42/calibration_metrics.json`
 - `fastflow_resnet18_256_printer384_v2_final/try_1_seed_42/calibration_report.json`
 
+### Attempt 2: ResNet18-384, seed 42, try 1
+
+- Status: failed before model construction; this does not count as a training
+  run and provides no evidence for H1.
+- Completed epochs/training batches: `0 / 0`.
+- Calibration and locked test inference were not run.
+- Cause: Anomalib created `FastflowModel(pre_trained=True)`, which calls `timm`;
+  `timm` attempted Hugging Face metadata access through an unavailable local
+  proxy before using cached weights.
+- Verified recovery: both ResNet18 and DeiT Anomalib models constructed
+  successfully from local cache under process-local `HF_HUB_OFFLINE=1`.
+- Cached ResNet source: `timm/resnet18.a1_in1k`, snapshot `491b427b...`, cached
+  `model.safetensors` SHA-256 `80c49dee3da4822c009c5a7fe591e9223c5a2cfcf95a4067ca4dfb5a7b89c612`.
+- Cached DeiT source: `timm/deit_base_distilled_patch16_384.fb_in1k`, snapshot
+  `58d8039f...`, cached `model.safetensors` SHA-256
+  `f739dfae2bf3fdd4ef415fdb015966c515b9adca7de703a08365fb349fea82ca`.
+
+Sources:
+
+- `fastflow_resnet18_384_printer384_v2_final/try_1_seed_42/failure.json`
+- `fastflow_resnet18_384_printer384_v2_final/try_1_seed_42/execution_provenance.json`
+- `fastflow_resnet18_384_printer384_v2_final/try_1_seed_42/run_note.md`
+
 ## Decision log
 
 | Date | Evidence available | Decision | Reason |
 |---|---|---|---|
 | 2026-07-23 | Run 1 plus frozen split audit. | Run ResNet18-384 seed 42 before DeiT. | Isolate input-resolution effect and establish the matched CNN control. |
 | 2026-07-23 | User review of experiment cost. | Do not repeat ResNet18-256; use two paired seeds for the primary systems and add a third pair only if unstable. | Avoid spending nine runs solely on reproducibility. |
+| 2026-07-23 | Attempt 2 failed before training; both backbones then built from the existing local cache in offline mode. | Preserve failed `try_1`; retry ResNet18-384 seed 42 as `try_2` with process-local `HF_HUB_OFFLINE=1`. | Use the same Anomalib/timm model path as the notebooks without changing proxy/VPN settings or downloading different weights. |
 
 ## Update checklist after each attempt
 

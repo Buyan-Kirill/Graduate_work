@@ -1,0 +1,13 @@
+{
+  "status": "failed_pretraining",
+  "stage": "train_calibrate",
+  "recorded_at_utc": "2026-07-22T22:06:24.7177777Z",
+  "error_type": "requests.exceptions.ProxyError",
+  "root_cause": "timm attempted Hugging Face metadata access through an unavailable local proxy before using cached pretrained weights",
+  "training_started": false,
+  "completed_epochs": 0,
+  "completed_training_batches": 0,
+  "test_inference_executed": false,
+  "artifacts_overwritten": false,
+  "next_action": "preserve try_1 and retry in try_2 with process-local HF_HUB_OFFLINE=1 after validating both cached Anomalib/timm backbones"
+}

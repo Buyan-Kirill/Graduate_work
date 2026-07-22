@@ -1,3 +1,4 @@
 experiment_number,status,config_name,try_number,seed,stage,test_read,start_utc,end_utc,elapsed_seconds,duration_source,best_epoch,best_normal_val_loss,selected_top_k_pixels,selected_top_k_fraction,calibration_primary_roc_auc,calibration_object_roc_auc,calibration_source_image_roc_auc,run_dir
 1,completed,resnet18_256,1,42,train_calibration,false,2026-07-22T20:49:38.3254054Z,2026-07-22T21:00:10.7897076Z,632.464,run_config_and_calibration_metrics_file_mtime,14,-976220.853125,65536,1.0,0.914659090909091,0.955,0.8800000000000001,experiments/printer/fastflow_resnet18_256_printer384_v2_final/try_1_seed_42
-2,planned,resnet18_384,1,42,train_calibration,false,,,,,,,,,,,,experiments/printer/fastflow_resnet18_384_printer384_v2_final/try_1_seed_42
+2,failed_pretraining,resnet18_384,1,42,train_calibration,false,2026-07-22T22:03:24.512755+00:00,,,not_measured_pretraining_failure,,,,,,,,experiments/printer/fastflow_resnet18_384_printer384_v2_final/try_1_seed_42
+3,planned,resnet18_384,2,42,train_calibration,false,,,,,,,,,,,,experiments/printer/fastflow_resnet18_384_printer384_v2_final/try_2_seed_42

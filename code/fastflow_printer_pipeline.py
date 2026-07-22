@@ -207,6 +207,7 @@ def runtime_environment(device):
         },
         "torch_cuda": torch.version.cuda,
         "cudnn": torch.backends.cudnn.version(),
+        "hf_hub_offline": os.environ.get("HF_HUB_OFFLINE"),
         "gpu_name": torch.cuda.get_device_name(device) if cuda_device else None,
         "gpu_total_memory_mib": (
             int(torch.cuda.get_device_properties(device).total_memory / 1024**2)
