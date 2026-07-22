@@ -23,8 +23,8 @@ Numbers are included only with a path to their source artifact.
 |---|---|---|---|---|
 | H1 | Matching ResNet18 input resolution from 256 to 384 materially changes printer calibration quality. | not supported on seed 42 | ResNet18-384 changed primary calibration ROC AUC by only `+0.005227` and source-image ROC AUC by `0.0` versus ResNet18-256. | Treat ResNet18-384 as the fair matched control, not as a demonstrated resolution improvement. Do not spend a run repeating ResNet18-256. |
 | H2 | The MVTec-tested DeiT optimizer recipe trains stably on the printer dataset. | supported for numerical stability; clipping is unnecessary for stability | Removing clipping lowers final normal-val loss by `20.7%` without divergence, but changes primary calibration AUC by only `+0.002159`; clipped/no-clip score Spearman correlation is `0.988102`. | Do not repeat no-clip at seed 123. Use the original recipe for the predeclared paired-seed baseline and treat clipping as not causal for the ranking gap. |
-| H3 | The main DeiT gap, if present, is representation/spatial-resolution related rather than optimizer failure. | supported on seed 42; cross-seed confirmation pending | Both stable DeiT variants trail ResNet18-384 primary AUC by `-0.046705` and `-0.044545`; a `20.7%` likelihood improvement barely changes ranking. | Run the paired ResNet18/DeiT seed 123 controls before making a cross-seed representation conclusion. |
-| H4 | A selected top-k is a stable property rather than calibration overfit. | supported for ResNet18; DeiT cross-seed pending | ResNet18-384 seeds 42 and 123 both select the full map and both curves rise toward it; both seed-42 DeiT variants do the same. | Check DeiT seed 123; never choose top-k from test. |
+| H3 | The main DeiT gap, if present, is representation/spatial-resolution related rather than optimizer failure. | inconclusive due seed interaction | DeiT trails ResNet by `-0.046705` at seed 42 but leads by `+0.018523` at seed 123. DeiT sample SD over two seeds is `0.058095` versus ResNet `0.011973`. | Run the predeclared third paired seed. Do not assign the gap to representation from one seed or freeze the favorable seed. |
+| H4 | A selected top-k is a stable property rather than calibration overfit. | supported across the first two paired seeds | ResNet18-384 and DeiT seeds 42 and 123 all select the full map and every primary curve rises toward it; the no-clip diagnostic does too. | Freeze full-map top-k if seed 2025 repeats the pattern; never choose top-k from test. |
 
 Architecture fact relevant to H3: in the current Anomalib FastFlow
 implementation, ResNet18 contributes three feature scales, while DeiT at 384
@@ -213,6 +213,41 @@ Sources:
 - `fastflow_resnet18_384_printer384_v2_final/try_3_seed_123/calibration_metrics.json`
 - `fastflow_resnet18_384_printer384_v2_final/try_3_seed_123/calibration_report.json`
 
+### Run 6: DeiT-384, seed 123
+
+- Status: completed train + calibration; source validation passed; locked test
+  inference was not run.
+- Training/full-stage duration: `1205.166648100001 / 1208.3400101` seconds.
+- Peak allocated CUDA memory: `1277.873046875` MiB.
+- Best epoch/loss: `40 / 40`, `98305.18627929688`.
+- Clipping is again active in `100%` of batches. Mean pre-clip norm averaged
+  across epochs is `403047.908547852`; maximum batch norm is `2055065.375`.
+- Selected top-k remains full map, `147456 / 147456` (`1.0`).
+- Calibration source-group-balanced tile ROC AUC: `0.9553409090909091`.
+- Calibration object/source-image ROC AUC: `0.975 / 0.88`.
+- Paired DeiT-minus-ResNet primary difference is `+0.0185227272727273`,
+  reversing the seed-42 difference `-0.0467045454545455`.
+- Across seeds 42/123, primary means are ResNet `0.9283522727272727` and DeiT
+  `0.9142613636363637`; sample SDs are `0.01197260345418126` and
+  `0.05809525031794021`. Mean paired difference is `-0.0140909090909091`.
+- Cross-seed calibration-score Pearson/Spearman correlations are
+  `0.977389/0.973876` for ResNet and `0.920910/0.915706` for DeiT.
+- Figures were visually checked against source CSV/JSON.
+
+Interpretation: DeiT can outperform ResNet on the same frozen calibration set,
+but its result is substantially more seed-sensitive. The backbone ordering is
+not stable after two seeds, so the third paired seed is justified by the
+predeclared protocol. Selecting seed 123 alone would be cherry-picking.
+
+Sources:
+
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/run_note.md`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/train_history.csv`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/training_summary.json`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/calibration_selection.json`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/calibration_metrics.json`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/calibration_report.json`
+
 ## Decision log
 
 | Date | Evidence available | Decision | Reason |
@@ -224,6 +259,7 @@ Sources:
 | 2026-07-23 | Completed DeiT-384 seed 42: primary AUC `0.873182`, `-0.046705` versus matched ResNet; smooth loss but clipping active in `100%` of batches. | Run one DeiT-384 no-clipping ablation at seed 42 with all other settings fixed. | The baseline ranking gap is real on calibration, but saturated clipping is a measured optimizer confound. A single-factor ablation is more informative than blindly adding seeds or changing architecture. |
 | 2026-07-23 | No-clip DeiT lowers normal-val loss by `20.7%`, but primary AUC changes only `+0.002159`, source AUC is unchanged, threshold accuracy is worse, and score Spearman correlation is `0.988102`. | Do not promote or repeat no-clip. Run the predeclared ResNet18-384/DeiT baseline pair at seed 123. | The clipping hypothesis is resolved without parameter fishing: clipping is not needed for stability, but it does not explain the ranking gap. A second paired seed now tests whether the gap is reproducible. |
 | 2026-07-23 | ResNet18-384 seed 123 primary AUC is `0.936818`, `+0.016932` over seed 42; full-map top-k repeats. | Proceed to the already planned DeiT baseline seed 123, with no other changes. | Complete the paired comparison before interpreting backbone means or spending a third seed. |
+| 2026-07-23 | DeiT seed 123 primary AUC is `0.955341`, beating paired ResNet by `+0.018523`, while seed 42 difference was `-0.046705`; DeiT two-seed SD is `0.058095`. | Run the predeclared third pair at seed 2025, ResNet first and DeiT second. | Ordering is inconsistent and DeiT variance is material. A third paired seed is required to avoid cherry-picking either outcome. |
 
 ## Update checklist after each attempt
 
