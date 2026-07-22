@@ -1,8 +1,205 @@
 # Project Handoff Memory
 
-Last updated: 2026-07-22
+Last updated: 2026-07-23
 
 This file is meant to be pasted into a new chat so work can continue without rebuilding context.
+
+## Priority Runbook: FastFlow Printer Backbone Study
+
+### Approval state
+
+- This runbook is prepared for review only.
+- Do not start another training run or read the locked test until the user
+  explicitly approves this plan.
+
+### Objective and honest acceptance criteria
+
+Determine whether FastFlow with `deit_base_distilled_384` can match or exceed
+the ResNet18 systems on the frozen printer dataset. If it cannot, identify the
+most likely cause using saved measurements and controlled ablations rather
+than speculation.
+
+- Primary ranking metric: source-image-balanced tile ROC AUC.
+- Always report raw DeiT-minus-ResNet ROC AUC and paired 95% cluster-bootstrap
+  interval. Do not assume an arbitrary ROC AUC non-inferiority margin.
+- Practical threshold criterion: for every paired seed, DeiT may make at most
+  one additional misclassified test tile versus the relevant ResNet baseline.
+- Always report tile FP/FN/error counts and source-image-max FP/FN/error counts.
+- Ideally DeiT should have a non-negative raw difference and fewer errors.
+- Because test has only 9 normal and 7 anomalous source groups, conclusions
+  must explicitly retain statistical and domain-generalization limitations.
+
+### Frozen data and current state
+
+- Dataset split: `printer_384_v2_final`.
+- Manifest:
+  `experiments/printer/dataset_v384_audit/printer_split_v2_final.csv`.
+- Manifest SHA-256:
+  `aac844a06b740658ffcb756f033efd1722a0258f50b16c3e9dce0ae38d431317`.
+- Never move, delete, or overwrite original dataset files. Review folders are
+  copies and are not model inputs.
+- The locked test has not been read by the new protocol.
+- Completed training count: 1.
+- Completed run: `resnet18_256`, seed 42, run 1 in the ledger. Its calibration
+  primary ROC AUC is `0.914659090909091`; selected top-k is all 65,536 pixels.
+- Current protocol commits are pushed to GitHub: `c6c4a09` and `1fe447a`.
+
+### Non-negotiable execution limits
+
+- Run exactly one training process at a time. Never parallelize GPU training.
+- Check that no prior Python/training process is active and inspect
+  `nvidia-smi` before every run.
+- Normal run duration should be at most about 40 minutes. Investigate a run
+  that materially exceeds this before starting another one.
+- Target total budget: 10-12 training runs, including the completed run.
+- Hard stop: 15 training runs or 16 hours of autonomous work, whichever comes
+  first. At that point, stop and write conclusions from available evidence.
+- Do not perform broad hyperparameter search. Every follow-up must test a
+  specific hypothesis supported by prior artifacts.
+- Never use `--allow-overwrite` or `--skip-hash-verification` for real runs.
+- Preserve failed and unexpectedly poor runs. Never edit metrics to fit the
+  expected conclusion.
+
+### Preflight before every training run
+
+1. Confirm the latest user instruction still permits autonomous execution.
+2. Confirm Git working state and current commit. Prefer a clean committed tree;
+   otherwise record the exact dirty-state and file hashes in provenance.
+3. Confirm `.git/objects/maintenance.lock` is absent. If Git maintenance is
+   active but consuming CPU, let it finish; do not kill it without permission.
+4. Confirm no other training process is active and the GPU has enough free
+   memory.
+5. Verify the split config and manifest hash. Do not proceed on a mismatch.
+6. Confirm the destination run directory does not contain prior artifacts.
+7. Add a planned ledger entry/run note with run number, hypothesis, config,
+   seed, and reason for the run.
+
+### Baseline experiment sequence
+
+Use separate CLI invocations for one config and one seed so execution is
+unambiguously sequential.
+
+Phase A, resolution/backbone comparison on seed 42:
+
+1. Run 2: `resnet18_384`, seed 42.
+2. Run 3: `deit_base_distilled_384`, seed 42.
+3. Validate each run report and compare calibration-only evidence: loss curve,
+   best epoch, top-k sweep, score distribution, gradient clipping activity,
+   and tile/object/source ranking metrics.
+4. Stop for a decision gate. Do not launch all remaining seeds blindly if the
+   first DeiT run is invalid, unstable, or exposes an implementation issue.
+
+Phase B, paired reproducibility runs after Phase A passes validation:
+
+5. Complete seeds 123 and 2025 for `resnet18_256`.
+6. Complete seeds 123 and 2025 for `resnet18_384`.
+7. Complete seeds 123 and 2025 for `deit_base_distilled_384`.
+
+This produces 9 baseline runs in total: three configs times three seeds. Run
+order inside Phase B may alternate backbones by seed, but training remains
+strictly sequential.
+
+### Calibration-only decision gate
+
+After every run, and again after the 9-run baseline matrix:
+
+- Verify all report values against `train_history.csv`,
+  `training_summary.json`, `calibration_selection.json`,
+  `calibration_metrics.json`, `calibration_scores.csv`, and the top-k sweep.
+- Inspect seed variance and whether top-k choices are stable or are driven by
+  the small set of 5 normal and 5 anomalous calibration source groups.
+- Distinguish optimization failure from representation failure:
+  - unstable/non-converged loss, clipping saturation, or endpoint best epoch
+    supports an optimizer/schedule hypothesis;
+  - stable likelihood training but consistently weak anomaly ranking supports
+    a feature-representation or spatial-resolution hypothesis;
+  - large changes across seeds/top-k support calibration variance rather than
+    a stable backbone conclusion.
+- Relevant architecture fact to test against observations: the current
+  Anomalib ResNet18 FastFlow path uses three feature scales, while the DeiT
+  path exposes one 24x24 patch-token feature map at 384 input. This is a
+  plausible disadvantage for small local printer defects, but it is not a
+  conclusion until results support it.
+
+### Targeted follow-ups
+
+Reserve at most 3 training runs after the 9-run baseline matrix. Select them
+only from observed evidence and document the hypothesis before execution.
+
+- Optimization follow-up only if DeiT training diagnostics show instability
+  or under-training: change one of LR, schedule/epochs, or clipping behavior,
+  not several at once.
+- Post-processing follow-up only if calibration top-k curves show a stable
+  cross-seed region. Never choose top-k from test.
+- Representation follow-up only if optimization is healthy but DeiT ranking
+  remains weak: test one explicit feature-resolution/multi-layer hypothesis.
+  Treat it as a new model configuration with a new run directory.
+- If calibration evidence is too noisy to choose among alternatives, do not
+  spend runs on parameter fishing; retain the baseline and report uncertainty.
+
+### Freeze and locked test
+
+1. Freeze all compared configs, checkpoints, top-k values, thresholds, seeds,
+   and analysis code in a documented local commit before test.
+2. Push that commit by explicit HTTPS URL.
+3. Run the `test` stage once for every frozen run, sequentially. The test stage
+   must load `calibration_selection.json` and must not select top-k/threshold.
+4. Run `code/analyze_fastflow_printer_results.py` without an implicit ROC AUC
+   margin. Save raw differences, paired intervals, and exact threshold errors.
+5. Test results may be used for final error analysis, but not for another
+   tuning loop presented against the same test as unbiased. Any post-test model
+   change requires a new future holdout for an honest confirmatory claim.
+
+### Required artifacts and human observability
+
+Every attempted run, successful or failed, must have a unique directory and a
+ledger row. Preserve at least:
+
+- `run_note.md`: hypothesis, exact change, expected diagnostic, outcome, and
+  next decision;
+- `run_config.json` and `execution_provenance.json`: seed, config, Git state,
+  hashes, environment, and timestamps;
+- `train_history.csv`, `training_summary.json`, and checkpoints/weights;
+- calibration selection, metrics, scores, top-k sweep, and validated report;
+- loss/LR, top-k, and score-distribution plots;
+- after freeze only: test scores/metrics and final comparison reports.
+
+Update `experiments/printer/printer384_v2_experiment_ledger.csv` after every
+attempt, including failures and elapsed time. Before citing a number, trace it
+to the source artifact and verify report consistency/hashes.
+
+### Git and versioning rules
+
+- Never rewrite history, delete old experiment data, or use destructive Git
+  commands.
+- Commit code/protocol changes before the run they affect. Commit run metadata,
+  metrics, plots, reports, and ledger updates after each run or one small,
+  clearly identified batch. Weights remain ignored if already covered by
+  `.gitignore`.
+- The configured `origin` may remain SSH. For network writes use exactly:
+  `git push https://github.com/Buyan-Kirill/Graduate_work.git main`.
+- Do not change `git config`, remotes, credentials, proxy, VPN, SSH, or machine
+  settings. If HTTPS push fails, make a local commit, record that it is not
+  pushed, stop repeated attempts, and continue only when local versioning is
+  safe.
+- Never push while Git maintenance holds its lock. Wait and verify CPU activity
+  before deciding that maintenance is stuck.
+
+### Communication and final stop conditions
+
+- Notify the user at important boundaries: preflight, start of each training
+  run, completion with exact calibration facts, decision gate, config freeze,
+  test start, and final conclusion. Do not stream noisy batch progress.
+- Ask the user only for domain-label decisions, physical machine intervention,
+  or choices outside this approved runbook. State exactly what is needed and
+  why.
+- Stop early for invalid data/provenance, repeated execution failure, hardware
+  risk, evidence that the planned comparison is methodologically invalid, or
+  the run/time hard limit.
+- Final report must list every run, hypothesis, config/seed, duration, exact
+  calibration/test metrics, error counts, relevant plots/artifact paths, and
+  Git commits. Clearly separate facts, supported interpretations, unresolved
+  uncertainty, and production limitations.
 
 ## Short Memory
 
