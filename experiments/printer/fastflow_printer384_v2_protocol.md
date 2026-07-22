@@ -81,10 +81,17 @@ source-image ROC AUC/AP, and threshold balanced accuracy/FPR/FNR.
 
 Per-run 95% intervals use label-stratified cluster bootstrap over source
 images. The final DeiT-minus-ResNet comparison uses a paired hierarchical
-bootstrap over both training seeds and source images. A practical
-non-inferiority margin of 0.03 ROC AUC is predeclared in the comparison script;
-the raw difference and confidence interval must always be reported alongside
-the binary decision.
+bootstrap over both training seeds and source images. The raw ROC AUC
+difference and its confidence interval are always reported. No ROC AUC
+non-inferiority margin is assumed by default; the script produces that binary
+decision only when a margin is explicitly supplied.
+
+For the thresholded result, the practical criterion is no more than one
+additional misclassified test tile for DeiT versus a ResNet baseline for every
+seed. False positives, false negatives and total errors are also reported
+after max aggregation by source image. This source-level view is required
+because tiles from one capture are correlated; the one-tile tolerance is not a
+claim that all 98 test tiles are statistically independent.
 
 Important limitations:
 

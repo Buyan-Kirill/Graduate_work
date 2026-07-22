@@ -7,6 +7,7 @@ import pandas as pd
 
 from fastflow_printer_pipeline import (
     PRINTER_CONFIGS,
+    aggregate_score_rows,
     experiment_log_dir,
     multilevel_ranking_metrics,
 )
@@ -94,19 +95,45 @@ def primary_metric(rows):
     return multilevel_ranking_metrics(rows, "score")[PRIMARY_METRIC]
 
 
+def threshold_error_counts(rows, threshold):
+    labels = rows["label"].to_numpy(dtype=int)
+    predictions = rows["score"].to_numpy(dtype=float) >= threshold
+    false_positives = int(((labels == 0) & predictions).sum())
+    false_negatives = int(((labels == 1) & ~predictions).sum())
+    return false_positives, false_negatives
+
+
+def run_error_counts(run):
+    threshold = float(run["metrics"]["test_threshold"])
+    source_rows = aggregate_score_rows(run["scores"], "source_group", "score")
+    tile_fp, tile_fn = threshold_error_counts(run["scores"], threshold)
+    source_fp, source_fn = threshold_error_counts(source_rows, threshold)
+    return {
+        "tile_false_positives": tile_fp,
+        "tile_false_negatives": tile_fn,
+        "tile_total_errors": tile_fp + tile_fn,
+        "source_image_max_false_positives": source_fp,
+        "source_image_max_false_negatives": source_fn,
+        "source_image_max_total_errors": source_fp + source_fn,
+    }
+
+
 def compare_runs(
     baseline_runs,
     candidate_runs,
     iterations,
     bootstrap_seed,
     non_inferiority_margin,
+    max_extra_tile_errors,
 ):
     if not baseline_runs or not candidate_runs:
         raise ValueError("Baseline and candidate runs must not be empty")
     if iterations < 1:
         raise ValueError("Bootstrap iterations must be positive")
-    if non_inferiority_margin < 0:
+    if non_inferiority_margin is not None and non_inferiority_margin < 0:
         raise ValueError("Non-inferiority margin must be non-negative")
+    if max_extra_tile_errors < 0:
+        raise ValueError("Maximum extra tile errors must be non-negative")
     if [run["seed"] for run in baseline_runs] != [run["seed"] for run in candidate_runs]:
         raise ValueError("Baseline and candidate seeds do not match")
     validate_paired_runs(baseline_runs + candidate_runs)
@@ -115,12 +142,35 @@ def compare_runs(
     for baseline, candidate in zip(baseline_runs, candidate_runs, strict=True):
         baseline_metric = primary_metric(baseline["scores"])
         candidate_metric = primary_metric(candidate["scores"])
+        baseline_errors = run_error_counts(baseline)
+        candidate_errors = run_error_counts(candidate)
+        extra_tile_errors = (
+            candidate_errors["tile_total_errors"]
+            - baseline_errors["tile_total_errors"]
+        )
+        extra_source_errors = (
+            candidate_errors["source_image_max_total_errors"]
+            - baseline_errors["source_image_max_total_errors"]
+        )
         per_seed.append(
             {
                 "seed": baseline["seed"],
                 "baseline": baseline_metric,
                 "candidate": candidate_metric,
                 "difference": candidate_metric - baseline_metric,
+                **{
+                    f"baseline_{name}": value
+                    for name, value in baseline_errors.items()
+                },
+                **{
+                    f"candidate_{name}": value
+                    for name, value in candidate_errors.items()
+                },
+                "extra_tile_errors": extra_tile_errors,
+                "within_tile_error_tolerance": bool(
+                    extra_tile_errors <= max_extra_tile_errors
+                ),
+                "extra_source_image_max_errors": extra_source_errors,
             }
         )
 
@@ -150,15 +200,27 @@ def compare_runs(
     mean_difference = float(np.mean([row["difference"] for row in per_seed]))
     ci_low = float(np.quantile(differences, 0.025))
     ci_high = float(np.quantile(differences, 0.975))
-    return {
+    result = {
         "per_seed": per_seed,
         "mean_difference": mean_difference,
         "bootstrap_ci_low": ci_low,
         "bootstrap_ci_high": ci_high,
-        "non_inferiority_margin": float(non_inferiority_margin),
-        "non_inferior": bool(ci_low > -non_inferiority_margin),
-        "bootstrap_probability_non_inferior": float(
-            np.mean(differences > -non_inferiority_margin)
+        "max_extra_tile_errors": int(max_extra_tile_errors),
+        "all_seeds_within_tile_error_tolerance": all(
+            row["within_tile_error_tolerance"] for row in per_seed
+        ),
+        "non_inferiority_margin": (
+            None if non_inferiority_margin is None else float(non_inferiority_margin)
+        ),
+        "non_inferior": (
+            None
+            if non_inferiority_margin is None
+            else bool(ci_low > -non_inferiority_margin)
+        ),
+        "bootstrap_probability_non_inferior": (
+            None
+            if non_inferiority_margin is None
+            else float(np.mean(differences > -non_inferiority_margin))
         ),
         "bootstrap_iterations": int(iterations),
         "bootstrap_seed": int(bootstrap_seed),
@@ -167,6 +229,7 @@ def compare_runs(
             "source-image groups"
         ),
     }
+    return result
 
 
 def seed_metric_row(run):
@@ -186,6 +249,7 @@ def seed_metric_row(run):
         ],
         "fpr": metrics["test_source_group_balanced_tile_fpr"],
         "fnr": metrics["test_source_group_balanced_tile_fnr"],
+        **run_error_counts(run),
         "log_dir": run["log_dir"],
     }
 
@@ -215,10 +279,18 @@ def write_outputs(output_dir, try_number, seed_rows, report, allow_overwrite):
                 "",
                 f"candidate_minus_{baseline}: {comparison['mean_difference']}",
                 f"ci_95: [{comparison['bootstrap_ci_low']}, {comparison['bootstrap_ci_high']}]",
-                f"margin: {comparison['non_inferiority_margin']}",
-                f"non_inferior: {comparison['non_inferior']}",
+                f"max_extra_tile_errors: {comparison['max_extra_tile_errors']}",
+                "all_seeds_within_tile_error_tolerance: "
+                f"{comparison['all_seeds_within_tile_error_tolerance']}",
             ]
         )
+        if comparison["non_inferiority_margin"] is not None:
+            lines.extend(
+                [
+                    f"non_inferiority_margin: {comparison['non_inferiority_margin']}",
+                    f"non_inferior: {comparison['non_inferior']}",
+                ]
+            )
     text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return csv_path, json_path, text_path
 
@@ -240,7 +312,8 @@ def parse_args():
     parser.add_argument("--candidate-config", default="deit_base_distilled_384")
     parser.add_argument("--bootstrap-iterations", type=int, default=2000)
     parser.add_argument("--bootstrap-seed", type=int, default=20260722)
-    parser.add_argument("--non-inferiority-margin", type=float, default=0.03)
+    parser.add_argument("--non-inferiority-margin", type=float)
+    parser.add_argument("--max-extra-tile-errors", type=int, default=1)
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -274,6 +347,7 @@ def main():
             iterations=args.bootstrap_iterations,
             bootstrap_seed=args.bootstrap_seed,
             non_inferiority_margin=args.non_inferiority_margin,
+            max_extra_tile_errors=args.max_extra_tile_errors,
         )
         for baseline in args.baseline_configs
     }
@@ -287,8 +361,12 @@ def main():
         "seeds": args.seeds,
         "comparisons": comparisons,
         "interpretation": (
-            "Non-inferiority is supported only when the lower 95% bootstrap bound "
-            "for candidate minus baseline is above the negative margin."
+            "Always report the raw candidate-minus-baseline ROC AUC difference and "
+            "paired 95% bootstrap interval. The threshold criterion is met when "
+            "the candidate makes at most the configured number of additional tile "
+            "errors for every seed; source-image-max errors remain visible because "
+            "tiles from one source are correlated. A ROC AUC non-inferiority "
+            "decision is produced only when a margin is explicitly supplied."
         ),
     }
     paths = write_outputs(
