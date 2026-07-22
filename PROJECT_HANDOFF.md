@@ -38,10 +38,12 @@ than speculation.
 - Never move, delete, or overwrite original dataset files. Review folders are
   copies and are not model inputs.
 - The locked test has not been read by the new protocol.
-- Completed training count: 1.
-- Completed run: `resnet18_256`, seed 42, run 1 in the ledger. Its calibration
-  primary ROC AUC is `0.914659090909091`; selected top-k is all 65,536 pixels.
-- Current protocol commits are pushed to GitHub: `c6c4a09` and `1fe447a`.
+- Completed training count: 2. One additional attempt failed before training
+  because network metadata access was unavailable and is preserved in ledger.
+- Completed calibration controls: `resnet18_256`, seed 42 has primary ROC AUC
+  `0.914659090909091`; `resnet18_384`, seed 42 has `0.9198863636363637`.
+  Both selected the full anomaly map as top-k.
+- Current execution/protocol base commit: `0390f3e`.
 
 ### Non-negotiable execution limits
 
