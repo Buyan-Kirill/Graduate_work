@@ -1,0 +1,24 @@
+{
+  "image_size": 384,
+  "num_pixels": 147456,
+  "selected_top_k_pixels": 147456,
+  "selected_top_k_fraction": 1.0,
+  "threshold_quantile": 0.95,
+  "threshold": -0.5344466358423233,
+  "top_k_grid": [
+    1,
+    74,
+    147,
+    369,
+    737,
+    1475,
+    3686,
+    7373,
+    9216,
+    14746,
+    29491,
+    49152,
+    73728,
+    147456
+  ]
+}
