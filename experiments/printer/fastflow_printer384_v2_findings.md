@@ -350,6 +350,25 @@ Sources:
 - `fastflow_resnet18_384_printer384_v2_final/try_3_seed_123/test_bootstrap_ci.json`
 - `fastflow_resnet18_384_printer384_v2_final/try_3_seed_123/test_execution_provenance.json`
 
+### Test 3: ResNet18-384, seed 2025
+
+- Calibration selection was reused unchanged.
+- Primary source-group-balanced tile ROC AUC: `0.8770595743384859` with
+  per-run 95% hierarchical-bootstrap interval
+  `[0.7599780787365823, 0.9714963286902063]`.
+- Tile counts: `FP=5`, `FN=12`, `TN=48`, `TP=33`.
+- Object-max counts: `FP=5`, `FN=2`, `TN=48`, `TP=5`.
+- Source-image-max counts: `FP=2`, `FN=2`, `TN=7`, `TP=5`.
+- Across ResNet seeds, primary AUC ranges from `0.8770595743384859` to
+  `0.9327921889146379`; source-image threshold counts remain 2 FP / 2 FN.
+
+Sources:
+
+- `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/test_metrics.json`
+- `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/test_scores.csv`
+- `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/test_bootstrap_ci.json`
+- `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/test_execution_provenance.json`
+
 ## Decision log
 
 | Date | Evidence available | Decision | Reason |

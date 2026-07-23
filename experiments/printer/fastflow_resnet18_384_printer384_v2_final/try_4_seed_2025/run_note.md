@@ -36,3 +36,17 @@ read until the candidate configurations are frozen.
 Training, top-k and score-distribution figures were visually checked against
 their CSV/JSON sources. Full-map top-k is now repeated across all three ResNet
 seeds. Proceed to the paired DeiT seed 2025; test remains untouched.
+
+## Locked test outcome
+
+- Executed once after calibration freeze; selection matches
+  `calibration_selection.json` (full map and threshold
+  `-0.5446715950965881`).
+- Source-group-balanced tile ROC AUC: `0.8770595743384859`; per-run 95%
+  hierarchical-bootstrap interval: `[0.7599780787365823,
+  0.9714963286902063]`.
+- Tile threshold counts: `FP=5`, `FN=12`, `TN=48`, `TP=33`.
+- Object-max threshold counts: `FP=5`, `FN=2`, `TN=48`, `TP=5`.
+- Source-image-max threshold counts: `FP=2`, `FN=2`, `TN=7`, `TP=5`.
+
+This is one predeclared seed result, not a standalone backbone conclusion.
