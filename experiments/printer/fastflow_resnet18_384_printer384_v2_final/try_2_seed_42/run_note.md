@@ -41,3 +41,17 @@ ResNet18-256 seed-42 reference, the primary calibration ROC AUC changed by
 only `+0.005227272727272636`; source-image ROC AUC did not change. This is
 evidence against a material resolution-only gain on this seed, not a
 cross-seed conclusion.
+
+## Locked test outcome
+
+- Executed once after calibration freeze commit `b2893c7`; selection matches
+  `calibration_selection.json` (full map and threshold
+  `-0.5474607408046722`).
+- Source-group-balanced tile ROC AUC: `0.9059381913123409`; per-run 95%
+  hierarchical-bootstrap interval: `[0.7886116094789565,
+  0.9854543142043142]`.
+- Tile threshold counts: `FP=5`, `FN=9`, `TN=48`, `TP=36`.
+- Object-max threshold counts: `FP=5`, `FN=2`, `TN=48`, `TP=5`.
+- Source-image-max threshold counts: `FP=2`, `FN=2`, `TN=7`, `TP=5`.
+
+This is one predeclared seed result, not a standalone backbone conclusion.

@@ -309,6 +309,28 @@ Sources:
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_3_seed_2025/calibration_metrics.json`
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_3_seed_2025/calibration_report.json`
 
+## Locked test observations
+
+### Test 1: ResNet18-384, seed 42
+
+- Executed once after freeze commit `b2893c7`; calibration selection was
+  reused unchanged.
+- Primary source-group-balanced tile ROC AUC: `0.9059381913123409` with
+  per-run 95% hierarchical-bootstrap interval
+  `[0.7886116094789565, 0.9854543142043142]`.
+- Tile counts: `FP=5`, `FN=9`, `TN=48`, `TP=36`.
+- Object-max counts: `FP=5`, `FN=2`, `TN=48`, `TP=5`.
+- Source-image-max counts: `FP=2`, `FN=2`, `TN=7`, `TP=5`.
+- This is an intermediate locked-test observation. Backbone interpretation is
+  deferred until all three paired seeds are complete.
+
+Sources:
+
+- `fastflow_resnet18_384_printer384_v2_final/try_2_seed_42/test_metrics.json`
+- `fastflow_resnet18_384_printer384_v2_final/try_2_seed_42/test_scores.csv`
+- `fastflow_resnet18_384_printer384_v2_final/try_2_seed_42/test_bootstrap_ci.json`
+- `fastflow_resnet18_384_printer384_v2_final/try_2_seed_42/test_execution_provenance.json`
+
 ## Decision log
 
 | Date | Evidence available | Decision | Reason |

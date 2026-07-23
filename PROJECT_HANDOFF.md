@@ -55,7 +55,9 @@ than speculation.
   `-0.046705`, `+0.018523`, and `+0.023864`, with mean `-0.001439`.
   All six primary runs selected full-map top-k. Stop training and freeze the
   two recipes plus per-run calibration thresholds before one locked-test pass
-  over the six primary checkpoints. Test remains locked at this handoff.
+  over the six primary checkpoints. Freeze commit `b2893c7` was pushed.
+  Locked test has started: ResNet18-384 seed 42 completed with primary AUC
+  `0.9059381913123409`; the other five checkpoints have not yet been tested.
 - Current execution/protocol base commit: `f848062`.
 
 ### Non-negotiable execution limits
