@@ -393,6 +393,25 @@ Sources:
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_1_seed_42/test_bootstrap_ci.json`
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_1_seed_42/test_execution_provenance.json`
 
+### Test 5: DeiT-384, seed 123
+
+- Calibration selection was reused unchanged.
+- Primary source-group-balanced tile ROC AUC: `0.9751286758089479` with
+  per-run 95% hierarchical-bootstrap interval
+  `[0.9408946118129792, 0.9967712512355369]`.
+- Tile counts: `FP=3`, `FN=7`, `TN=50`, `TP=38`.
+- Object-max counts: `FP=3`, `FN=0`, `TN=50`, `TP=7`.
+- Source-image-max counts: `FP=3`, `FN=0`, `TN=6`, `TP=7`.
+- Paired primary difference is `+0.0423364868943100`; DeiT makes 10 tile
+  errors versus ResNet's 14 and 3 source errors versus ResNet's 4.
+
+Sources:
+
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/test_metrics.json`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/test_scores.csv`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/test_bootstrap_ci.json`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/test_execution_provenance.json`
+
 ## Decision log
 
 | Date | Evidence available | Decision | Reason |

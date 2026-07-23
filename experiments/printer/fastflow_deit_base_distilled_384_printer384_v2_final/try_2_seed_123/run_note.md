@@ -46,3 +46,20 @@ The figures were visually checked against source CSV/JSON. Because backbone
 ordering reverses across seeds and DeiT variance is much larger than ResNet,
 the predeclared third paired seed is required before freezing configurations.
 No test data was used for this decision.
+
+## Locked test outcome
+
+- Executed once after calibration freeze; selection matches
+  `calibration_selection.json` (full map and threshold
+  `-0.5468745648860932`).
+- Source-group-balanced tile ROC AUC: `0.9751286758089479`; per-run 95%
+  hierarchical-bootstrap interval: `[0.9408946118129792,
+  0.9967712512355369]`.
+- Tile threshold counts: `FP=3`, `FN=7`, `TN=50`, `TP=38`.
+- Object-max threshold counts: `FP=3`, `FN=0`, `TN=50`, `TP=7`.
+- Source-image-max threshold counts: `FP=3`, `FN=0`, `TN=6`, `TP=7`.
+- Paired primary difference versus ResNet seed 123 is
+  `+0.0423364868943100`. DeiT makes 10 tile errors versus ResNet's 14.
+
+This seed favors DeiT in ranking and total threshold errors; the predeclared
+seed 2025 remains necessary for the final paired conclusion.
