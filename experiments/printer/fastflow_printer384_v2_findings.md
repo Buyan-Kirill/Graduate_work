@@ -412,6 +412,31 @@ Sources:
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/test_bootstrap_ci.json`
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/test_execution_provenance.json`
 
+### Test 6: DeiT-384, seed 2025
+
+- Calibration selection was reused unchanged.
+- Primary source-group-balanced tile ROC AUC: `0.9454105858867765` with
+  per-run 95% hierarchical-bootstrap interval
+  `[0.8901981704362658, 0.9853617216117216]`.
+- Tile counts: `FP=1`, `FN=26`, `TN=52`, `TP=19`.
+- Object-max counts: `FP=1`, `FN=1`, `TN=52`, `TP=6`.
+- Source-image-max counts: `FP=1`, `FN=1`, `TN=8`, `TP=6`.
+- Paired primary difference is `+0.0683510115482906`; DeiT makes 27 tile
+  errors versus ResNet's 17, but only 2 object/source errors versus ResNet's
+  7 object and 4 source errors.
+
+Interpretation: DeiT ranking wins again, while its calibration-derived tile
+threshold remains poorly transferable. Aggregation by object/source max
+recovers strong practical detection for this seed. No post-test tuning is
+allowed on this holdout.
+
+Sources:
+
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_3_seed_2025/test_metrics.json`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_3_seed_2025/test_scores.csv`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_3_seed_2025/test_bootstrap_ci.json`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_3_seed_2025/test_execution_provenance.json`
+
 ## Decision log
 
 | Date | Evidence available | Decision | Reason |

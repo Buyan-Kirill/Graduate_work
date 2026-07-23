@@ -61,7 +61,9 @@ than speculation.
   0.8770595743384859`. DeiT seed 42 completed at `0.92761456230844` but made
   28 tile threshold errors versus paired ResNet's 14. DeiT seed 123 reached
   `0.9751286758089479` and made 10 errors versus ResNet's 14. DeiT seed 2025
-  has not yet been tested.
+  reached `0.9454105858867765`; its tile errors were 27 versus ResNet's 17,
+  but its object/source errors were 2/2 versus ResNet's 7/4. All six frozen
+  test evaluations are complete; paired aggregation is next.
 - Current execution/protocol base commit: `f848062`.
 
 ### Non-negotiable execution limits

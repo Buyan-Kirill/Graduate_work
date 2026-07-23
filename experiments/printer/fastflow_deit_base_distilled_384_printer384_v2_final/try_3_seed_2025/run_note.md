@@ -45,3 +45,21 @@ The figures were visually checked against source CSV/JSON. Full-map top-k is
 stable across all six primary calibration runs. The mean ranking quality is
 effectively tied on this small calibration split, but DeiT is more
 seed-sensitive. No additional training is justified before the locked test.
+
+## Locked test outcome
+
+- Executed once after calibration freeze; selection matches
+  `calibration_selection.json` (full map and threshold
+  `-0.5377835601568223`).
+- Source-group-balanced tile ROC AUC: `0.9454105858867765`; per-run 95%
+  hierarchical-bootstrap interval: `[0.8901981704362658,
+  0.9853617216117216]`.
+- Tile threshold counts: `FP=1`, `FN=26`, `TN=52`, `TP=19`.
+- Object-max threshold counts: `FP=1`, `FN=1`, `TN=52`, `TP=6`.
+- Source-image-max threshold counts: `FP=1`, `FN=1`, `TN=8`, `TP=6`.
+- Paired primary difference versus ResNet seed 2025 is
+  `+0.0683510115482906`. DeiT makes 27 tile errors versus ResNet's 17, but
+  only 2 object/source errors versus ResNet's 7/4.
+
+This completes the predeclared locked-test matrix. No threshold or model
+parameter is changed from these results.

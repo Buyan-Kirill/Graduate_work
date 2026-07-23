@@ -1,0 +1,88 @@
+{
+  "method": "stratified source-group cluster bootstrap",
+  "iterations": 2000,
+  "seed": 102025,
+  "confidence_level": 0.95,
+  "metrics": {
+    "tile_roc_auc": {
+      "estimate": 0.9345911949685535,
+      "ci_low": 0.881210004456328,
+      "ci_high": 0.9784152885292048
+    },
+    "source_group_balanced_tile_roc_auc": {
+      "estimate": 0.9454105858867765,
+      "ci_low": 0.8901981704362658,
+      "ci_high": 0.9853617216117216
+    },
+    "object_roc_auc": {
+      "estimate": 0.9919137466307277,
+      "ci_low": 0.9642857142857143,
+      "ci_high": 1.0
+    },
+    "source_image_roc_auc": {
+      "estimate": 0.9682539682539683,
+      "ci_low": 0.873015873015873,
+      "ci_high": 1.0
+    },
+    "tile_balanced_accuracy": {
+      "estimate": 0.7016771488469602,
+      "ci_low": 0.6497102084550945,
+      "ci_high": 0.7476109302801309
+    },
+    "tile_fpr": {
+      "estimate": 0.018867924528301886,
+      "ci_low": 0.0,
+      "ci_high": 0.058823529411764705
+    },
+    "tile_fnr": {
+      "estimate": 0.5777777777777777,
+      "ci_low": 0.5,
+      "ci_high": 0.6666666666666666
+    },
+    "source_group_balanced_tile_balanced_accuracy": {
+      "estimate": 0.7019913948485378,
+      "ci_low": 0.6032294028722599,
+      "ci_high": 0.8128757485900343
+    },
+    "source_group_balanced_tile_fpr": {
+      "estimate": 0.018518518518518524,
+      "ci_low": 0.0,
+      "ci_high": 0.05555555555555558
+    },
+    "source_group_balanced_tile_fnr": {
+      "estimate": 0.5774986917844059,
+      "ci_low": 0.35238095238095246,
+      "ci_high": 0.7660361067503922
+    },
+    "object_balanced_accuracy": {
+      "estimate": 0.9191374663072777,
+      "ci_low": 0.7746031746031746,
+      "ci_high": 1.0
+    },
+    "object_fpr": {
+      "estimate": 0.018867924528301886,
+      "ci_low": 0.0,
+      "ci_high": 0.058823529411764705
+    },
+    "object_fnr": {
+      "estimate": 0.14285714285714285,
+      "ci_low": 0.0,
+      "ci_high": 0.42857142857142855
+    },
+    "source_image_balanced_accuracy": {
+      "estimate": 0.873015873015873,
+      "ci_low": 0.6904761904761905,
+      "ci_high": 1.0
+    },
+    "source_image_fpr": {
+      "estimate": 0.1111111111111111,
+      "ci_low": 0.0,
+      "ci_high": 0.3333333333333333
+    },
+    "source_image_fnr": {
+      "estimate": 0.14285714285714285,
+      "ci_low": 0.0,
+      "ci_high": 0.42857142857142855
+    }
+  }
+}
