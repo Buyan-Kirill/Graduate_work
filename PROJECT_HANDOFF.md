@@ -37,7 +37,8 @@ than speculation.
   `aac844a06b740658ffcb756f033efd1722a0258f50b16c3e9dce0ae38d431317`.
 - Never move, delete, or overwrite original dataset files. Review folders are
   copies and are not model inputs.
-- The locked test has not been read by the new protocol.
+- The locked test was evaluated once for the six frozen primary checkpoints;
+  no post-test model, top-k or threshold tuning was performed.
 - Completed training count: 8. One additional attempt failed before training
   because network metadata access was unavailable and is preserved in ledger.
 - Completed calibration controls: `resnet18_256`, seed 42 has primary ROC AUC
@@ -64,7 +65,8 @@ than speculation.
   reached `0.9454105858867765`; its tile errors were 27 versus ResNet's 17,
   but its object/source errors were 2/2 versus ResNet's 7/4. All six frozen
   test evaluations are complete; paired aggregation is next.
-- Current execution/protocol base commit: `f848062`.
+- Raw locked-test matrix was fully versioned by commit `a5357d6`. Final paired
+  analysis and report are the current remaining versioning step.
 
 ### Non-negotiable execution limits
 
@@ -323,7 +325,10 @@ Known current git status at time of this handoff: `experiments/metal_nut/README.
 - Staged CLI: `code/run_fastflow_printer_experiments.py`; use `train-calibrate` first and `test` only after configurations are frozen.
 - Calibration diagnostics: `code/analyze_fastflow_printer_calibration.py`.
 - Run three paired seeds: 42, 123, 2025. Select top-k only on calibration and never tune from test.
-- After locked test, run `code/analyze_fastflow_printer_results.py` for paired hierarchical-bootstrap comparison.
+- Locked test and paired hierarchical-bootstrap comparison are complete. Final
+  report: `experiments/printer/fastflow_printer384_v2_final_report.md`.
+- Interactive reproduction/inspection notebook:
+  `code/FastFlow_printer_final_reproduction.ipynb`.
 - Full protocol and limitations: `experiments/printer/fastflow_printer384_v2_protocol.md`.
 
 ## Long Memory

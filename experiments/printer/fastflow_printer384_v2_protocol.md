@@ -2,9 +2,11 @@
 
 ## Status
 
-The dataset split is frozen. The experiment is staged so that training and
-calibration can be analyzed before the locked test is read. Full GPU training
-has not yet been run for this protocol.
+Completed on 2026-07-23. The split, primary systems, three paired seeds,
+post-processing and analysis were frozen before test. The six primary
+checkpoints were evaluated once on locked test. Final results are in
+`fastflow_printer384_v2_final_report.md` and
+`printer384_v2_final_test_comparison_v2/`.
 
 Goal: compare a DeiT-backed FastFlow system against ResNet18 without selecting
 post-processing on test. The result may support practical non-inferiority on
@@ -54,12 +56,12 @@ The no-clipping DeiT configuration is a single-factor diagnostic added only
 after the baseline exceeded clip norm 10.0 in every training batch. It is not
 part of an open hyperparameter sweep.
 
-The primary ResNet18-384 and selected DeiT recipe use paired seeds 42 and 123.
-Seed 2025 is added for both only if ordering or variance across the first pair
-is materially unstable. A diagnostic recipe is repeated at seed 123 only if
-its seed-42 calibration result supports its predeclared hypothesis. The
-pretrained feature extractor is frozen. The best checkpoint is selected only
-by likelihood loss on disjoint normal data in `normal_val_loss`.
+The primary ResNet18-384 and selected DeiT recipe use paired seeds 42, 123 and
+2025. The third pair was added because ordering across the first two
+calibration seeds was unstable. The no-clipping diagnostic was not repeated
+because its seed-42 result did not support promotion. The pretrained feature
+extractor is frozen. The best checkpoint is selected only by likelihood loss
+on disjoint normal data in `normal_val_loss`.
 
 ## Calibration and locked test
 
@@ -113,7 +115,7 @@ Important limitations:
 ## Execution budget and observability
 
 - Only one GPU training process may run at a time.
-- Target budget: 10-12 training runs.
+- Completed training runs: 8, plus one preserved failure before training.
 - Hard stop: 15 training runs or 16 hours of total autonomous work.
 - Every run must have a separate directory, `run_note.md`, `run_config.json`,
   epoch history, calibration artifacts and a validated calibration report.
@@ -144,9 +146,12 @@ Important limitations:
 4. `.venv\Scripts\python.exe code\run_fastflow_printer_experiments.py --stage test`
 5. `.venv\Scripts\python.exe code\analyze_fastflow_printer_results.py`
 
-The two notebooks expose the same `train_calibrate`, `test`, and `load` modes
-for interactive use.
+The backbone notebooks expose the same `train_calibrate`, `test`, and `load`
+modes. `code/FastFlow_printer_final_reproduction.ipynb` loads the frozen
+comparison by default and reproduces one config/seed at a time without
+bypassing clean-worktree provenance checks.
 
-All new runs use `*_printer384_v2_final/try_1_seed_*` directories and refuse
-to overwrite existing artifacts by default. Historical `fastflow_resnet18`
-and `fastflow_deit_base_distilled` directories remain untouched.
+All new runs use unique `*_printer384_v2_final/try_*_seed_*` directories and
+refuse to overwrite existing artifacts by default. Historical
+`fastflow_resnet18` and `fastflow_deit_base_distilled` directories remain
+untouched.

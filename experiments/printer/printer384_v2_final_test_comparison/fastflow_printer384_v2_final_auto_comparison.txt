@@ -1,0 +1,7 @@
+split_version: printer_384_v2_final
+primary_metric: source_group_balanced_tile_roc_auc
+
+candidate_minus_resnet18_384: 0.0441212898128999
+ci_95: [-0.03432287729906761, 0.14606808535379953]
+max_extra_tile_errors: 1
+all_seeds_within_tile_error_tolerance: False

@@ -23,8 +23,9 @@ Numbers are included only with a path to their source artifact.
 |---|---|---|---|---|
 | H1 | Matching ResNet18 input resolution from 256 to 384 materially changes printer calibration quality. | not supported on seed 42 | ResNet18-384 changed primary calibration ROC AUC by only `+0.005227` and source-image ROC AUC by `0.0` versus ResNet18-256. | Treat ResNet18-384 as the fair matched control, not as a demonstrated resolution improvement. Do not spend a run repeating ResNet18-256. |
 | H2 | The MVTec-tested DeiT optimizer recipe trains stably on the printer dataset. | supported for numerical stability; clipping is unnecessary for stability | Removing clipping lowers final normal-val loss by `20.7%` without divergence, but changes primary calibration AUC by only `+0.002159`; clipped/no-clip score Spearman correlation is `0.988102`. | Do not repeat no-clip at seed 123. Use the original recipe for the predeclared paired-seed baseline and treat clipping as not causal for the ranking gap. |
-| H3 | The main DeiT gap, if present, is representation/spatial-resolution related rather than optimizer failure. | not supported as a stable calibration gap; seed sensitivity remains | Across three paired seeds, DeiT-minus-ResNet differences are `-0.046705`, `+0.018523`, and `+0.023864`; mean difference is `-0.001439`. DeiT sample SD is `0.044221` versus ResNet `0.010120`. | Do not add architecture or optimizer variants before test. The calibration evidence supports similar mean ranking with substantially less stable DeiT initialization, not deterministic transformer inferiority. |
+| H3 | The main DeiT gap, if present, is representation/spatial-resolution related rather than optimizer failure. | not supported by frozen test ranking | Test DeiT-minus-ResNet differences are `+0.021676`, `+0.042336`, and `+0.068351`; mean `+0.044121`, but paired bootstrap CI is `[-0.034323, 0.146068]`. | The old deterministic DeiT deficit is not reproducible. Do not claim significant superiority because the source-level interval includes zero. |
 | H4 | A selected top-k is a stable property rather than calibration overfit. | supported across all three paired seeds | The full `147456`-pixel map is the primary-AUC argmax in all six primary runs; the no-clip diagnostic selects it too. Some sweeps have local non-monotonic steps, so only endpoint optimality is claimed. | Freeze full-map aggregation for both backbones and never choose top-k from test. |
+| H5 | Poor DeiT tile decisions are primarily an operating-threshold issue rather than a ranking deficit. | supported, but not solved on this holdout | DeiT has higher test primary AUC on all seeds, yet tile errors are `28/10/27` versus ResNet `14/14/17`. DeiT object errors are `5/3/2` versus `7/5/7`, and source errors `4/3/2` versus `4/4/4`. | Keep the frozen result. Any new threshold rule must be selected on expanded calibration and confirmed on a new holdout, not tuned on this test. |
 
 Architecture fact relevant to H3: in the current Anomalib FastFlow
 implementation, ResNet18 contributes three feature scales, while DeiT at 384
@@ -437,6 +438,39 @@ Sources:
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_3_seed_2025/test_bootstrap_ci.json`
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_3_seed_2025/test_execution_provenance.json`
 
+## Final paired test result
+
+- ResNet18-384 primary mean/sample SD:
+  `0.9052633181884883 / 0.02787243570579096`.
+- DeiT-384 primary mean/sample SD:
+  `0.9493846080013881 / 0.02400504914096937`.
+- Mean paired DeiT-minus-ResNet difference: `+0.0441212898128999`.
+- Paired hierarchical-bootstrap 95% interval:
+  `[-0.03432287729906761, 0.14606808535379953]` (`2000` iterations,
+  bootstrap seed `20260722`).
+- DeiT ranks higher on all three seeds, but the interval includes zero because
+  test has only 9 normal and 7 anomalous independent source groups.
+- The predeclared at-most-one-extra-tile-error criterion fails on seeds 42 and
+  2025. Across seeds, total tile errors are ResNet `45`, DeiT `65`; object-max
+  errors are ResNet `19`, DeiT `10`; source-max errors are ResNet `12`, DeiT
+  `9`.
+- Saved metrics were recomputed from test score CSVs, and every test top-k and
+  threshold was verified against its calibration selection.
+
+Conclusion: DeiT matches and point-estimate outperforms ResNet for ranking and
+for object/source-level decisions. It does not match the frozen per-tile
+threshold criterion. The remaining issue is operating calibration and limited
+independent source coverage, not evidence of an intrinsic transformer ranking
+deficit.
+
+Sources:
+
+- `printer384_v2_final_test_comparison_v2/fastflow_printer384_v2_final_auto_comparison.json`
+- `printer384_v2_final_test_comparison_v2/fastflow_printer384_v2_final_auto_comparison_per_seed.csv`
+- `printer384_v2_final_test_comparison_v2/fastflow_printer384_v2_final_auto_comparison_tile_scores.csv`
+- `printer384_v2_final_test_comparison_v2/fastflow_printer384_v2_final_auto_comparison_object_scores.csv`
+- `printer384_v2_final_test_comparison_v2/fastflow_printer384_v2_final_auto_comparison_source_scores.csv`
+
 ## Decision log
 
 | Date | Evidence available | Decision | Reason |
@@ -451,6 +485,7 @@ Sources:
 | 2026-07-23 | DeiT seed 123 primary AUC is `0.955341`, beating paired ResNet by `+0.018523`, while seed 42 difference was `-0.046705`; DeiT two-seed SD is `0.058095`. | Run the predeclared third pair at seed 2025, ResNet first and DeiT second. | Ordering is inconsistent and DeiT variance is material. A third paired seed is required to avoid cherry-picking either outcome. |
 | 2026-07-23 | ResNet18-384 seed 2025 primary AUC is `0.91875`; full-map top-k repeats for all three ResNet seeds. | Proceed to paired DeiT seed 2025 with no config changes. | Complete the already justified third pair before aggregation and freeze. |
 | 2026-07-23 | DeiT seed 2025 primary AUC is `0.942614`, beating paired ResNet by `+0.023864`; three-seed mean difference is `-0.001439`, with DeiT SD `0.044221` versus ResNet `0.010120`. All six primary runs select full-map top-k. | Stop training, freeze both primary recipes and calibration selections, then perform one locked-test evaluation for all three paired seeds. | Calibration means are effectively tied and another variant would increase tuning risk. The remaining question is whether DeiT's higher seed sensitivity transfers to the untouched test. |
+| 2026-07-23 | On locked test, DeiT primary AUC is higher for all three seeds; mean difference is `+0.044121` with 95% paired bootstrap CI `[-0.034323, 0.146068]`. Tile error tolerance fails on 2/3 seeds, while object/source errors are lower or equal for every seed. | Stop experimentation on this holdout. Report ranking success, threshold failure and uncertainty; require expanded calibration plus a new future holdout for threshold changes. | Test ranking supports the DeiT objective, but the small source count prevents a significance claim and post-test tuning would invalidate the holdout. |
 
 ## Update checklist after each attempt
 

@@ -15,16 +15,42 @@ from fastflow_printer_pipeline import (
 
 PRIMARY_METRIC = "source_group_balanced_tile_roc_auc"
 METADATA_COLUMNS = ["path", "source_group", "object_group", "source_date", "label"]
+REQUIRED_TEST_ARTIFACTS = (
+    "test_scores.csv",
+    "test_metrics.json",
+    "run_config.json",
+    "calibration_selection.json",
+)
+
+
+def resolve_test_log_dir(experiments_root, config_name, try_number, seed):
+    config = PRINTER_CONFIGS[config_name]
+    if try_number is not None:
+        return experiment_log_dir(experiments_root, config, try_number, seed)
+
+    run_root = Path(experiments_root) / config["tag"]
+    candidates = [
+        path
+        for path in run_root.glob(f"try_*_seed_{seed}")
+        if all((path / name).is_file() for name in REQUIRED_TEST_ARTIFACTS)
+    ]
+    if len(candidates) != 1:
+        raise RuntimeError(
+            f"Expected one tested {config_name} seed {seed} run, found {candidates}"
+        )
+    return candidates[0]
 
 
 def load_run(experiments_root, config_name, try_number, seed):
-    config = PRINTER_CONFIGS[config_name]
-    log_dir = experiment_log_dir(experiments_root, config, try_number, seed)
+    log_dir = resolve_test_log_dir(experiments_root, config_name, try_number, seed)
     scores_path = log_dir / "test_scores.csv"
     metrics_path = log_dir / "test_metrics.json"
     run_config_path = log_dir / "run_config.json"
+    selection_path = log_dir / "calibration_selection.json"
     missing = [
-        path for path in (scores_path, metrics_path, run_config_path) if not path.is_file()
+        path
+        for path in (scores_path, metrics_path, run_config_path, selection_path)
+        if not path.is_file()
     ]
     if missing:
         raise FileNotFoundError(f"Missing run artifacts: {missing}")
@@ -37,8 +63,18 @@ def load_run(experiments_root, config_name, try_number, seed):
         raise ValueError(f"Duplicate test paths in {scores_path}")
     metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
     run_config = json.loads(run_config_path.read_text(encoding="utf-8"))
+    selection = json.loads(selection_path.read_text(encoding="utf-8"))
+    recomputed_primary = multilevel_ranking_metrics(scores, "score")[PRIMARY_METRIC]
+    if not np.isclose(recomputed_primary, metrics[f"test_{PRIMARY_METRIC}"]):
+        raise ValueError(f"Saved test metric does not match {scores_path}")
+    if (
+        selection["selected_top_k_pixels"] != metrics["selected_top_k_pixels"]
+        or not np.isclose(selection["threshold"], metrics["test_threshold"])
+    ):
+        raise ValueError(f"Test selection does not match calibration in {log_dir}")
     return {
         "config_name": config_name,
+        "try_number": int(log_dir.name.split("_seed_")[0].removeprefix("try_")),
         "seed": int(seed),
         "log_dir": str(log_dir),
         "scores": scores.sort_values("path").reset_index(drop=True),
@@ -105,13 +141,18 @@ def threshold_error_counts(rows, threshold):
 
 def run_error_counts(run):
     threshold = float(run["metrics"]["test_threshold"])
+    object_rows = aggregate_score_rows(run["scores"], "object_group", "score")
     source_rows = aggregate_score_rows(run["scores"], "source_group", "score")
     tile_fp, tile_fn = threshold_error_counts(run["scores"], threshold)
+    object_fp, object_fn = threshold_error_counts(object_rows, threshold)
     source_fp, source_fn = threshold_error_counts(source_rows, threshold)
     return {
         "tile_false_positives": tile_fp,
         "tile_false_negatives": tile_fn,
         "tile_total_errors": tile_fp + tile_fn,
+        "object_max_false_positives": object_fp,
+        "object_max_false_negatives": object_fn,
+        "object_max_total_errors": object_fp + object_fn,
         "source_image_max_false_positives": source_fp,
         "source_image_max_false_negatives": source_fn,
         "source_image_max_total_errors": source_fp + source_fn,
@@ -152,6 +193,10 @@ def compare_runs(
             candidate_errors["source_image_max_total_errors"]
             - baseline_errors["source_image_max_total_errors"]
         )
+        extra_object_errors = (
+            candidate_errors["object_max_total_errors"]
+            - baseline_errors["object_max_total_errors"]
+        )
         per_seed.append(
             {
                 "seed": baseline["seed"],
@@ -170,6 +215,7 @@ def compare_runs(
                 "within_tile_error_tolerance": bool(
                     extra_tile_errors <= max_extra_tile_errors
                 ),
+                "extra_object_max_errors": extra_object_errors,
                 "extra_source_image_max_errors": extra_source_errors,
             }
         )
@@ -198,10 +244,16 @@ def compare_runs(
 
     differences = np.asarray(differences, dtype=float)
     mean_difference = float(np.mean([row["difference"] for row in per_seed]))
+    baseline_values = np.asarray([row["baseline"] for row in per_seed], dtype=float)
+    candidate_values = np.asarray([row["candidate"] for row in per_seed], dtype=float)
     ci_low = float(np.quantile(differences, 0.025))
     ci_high = float(np.quantile(differences, 0.975))
     result = {
         "per_seed": per_seed,
+        "baseline_mean": float(baseline_values.mean()),
+        "baseline_sample_std": float(baseline_values.std(ddof=1)),
+        "candidate_mean": float(candidate_values.mean()),
+        "candidate_sample_std": float(candidate_values.std(ddof=1)),
         "mean_difference": mean_difference,
         "bootstrap_ci_low": ci_low,
         "bootstrap_ci_high": ci_high,
@@ -236,6 +288,7 @@ def seed_metric_row(run):
     metrics = run["metrics"]
     return {
         "config_name": run["config_name"],
+        "try_number": run["try_number"],
         "seed": run["seed"],
         "selected_top_k_pixels": metrics["selected_top_k_pixels"],
         "selected_top_k_fraction": metrics["selected_top_k_fraction"],
@@ -254,17 +307,46 @@ def seed_metric_row(run):
     }
 
 
-def write_outputs(output_dir, try_number, seed_rows, report, allow_overwrite):
+def score_matrix(runs, group_column=None):
+    def prepare(run):
+        if group_column is None:
+            return run["scores"].copy(), METADATA_COLUMNS
+        rows = aggregate_score_rows(run["scores"], group_column, "score")
+        return rows, [group_column, "label"]
+
+    first, keys = prepare(runs[0])
+    matrix = first[keys].copy()
+    for run in runs:
+        rows, _ = prepare(run)
+        if not matrix[keys].equals(rows[keys]):
+            raise ValueError(f"Score matrix rows differ for {run['log_dir']}")
+        prefix = f"{run['config_name']}_seed_{run['seed']}"
+        matrix[f"{prefix}_score"] = rows["score"].to_numpy()
+        matrix[f"{prefix}_prediction"] = (
+            rows["score"].to_numpy() >= float(run["metrics"]["test_threshold"])
+        ).astype(int)
+    return matrix
+
+
+def write_outputs(
+    output_dir, run_label, seed_rows, score_matrices, report, allow_overwrite
+):
     output_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"fastflow_printer384_v2_final_try_{try_number}_comparison"
+    stem = f"fastflow_printer384_v2_final_{run_label}_comparison"
     csv_path = output_dir / f"{stem}_per_seed.csv"
     json_path = output_dir / f"{stem}.json"
     text_path = output_dir / f"{stem}.txt"
-    for path in (csv_path, json_path, text_path):
+    matrix_paths = {
+        level: output_dir / f"{stem}_{level}_scores.csv"
+        for level in score_matrices
+    }
+    for path in (csv_path, json_path, text_path, *matrix_paths.values()):
         if path.exists() and not allow_overwrite:
             raise FileExistsError(f"Refusing to overwrite {path}")
 
     pd.DataFrame(seed_rows).to_csv(csv_path, index=False)
+    for level, matrix in score_matrices.items():
+        matrix.to_csv(matrix_paths[level], index=False)
     json_path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
@@ -292,7 +374,7 @@ def write_outputs(output_dir, try_number, seed_rows, report, allow_overwrite):
                 ]
             )
     text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return csv_path, json_path, text_path
+    return csv_path, json_path, text_path, *matrix_paths.values()
 
 
 def parse_args():
@@ -302,7 +384,12 @@ def parse_args():
         type=Path,
         default=Path("experiments/printer"),
     )
-    parser.add_argument("--try-number", type=int, default=1)
+    parser.add_argument(
+        "--try-number",
+        type=int,
+        default=None,
+        help="Use one explicit try for every config/seed; otherwise auto-detect.",
+    )
     parser.add_argument("--seeds", type=int, nargs="+", default=[42, 123, 2025])
     parser.add_argument(
         "--baseline-configs",
@@ -352,6 +439,11 @@ def main():
         for baseline in args.baseline_configs
     }
     seed_rows = [seed_metric_row(run) for run in all_runs]
+    score_matrices = {
+        "tile": score_matrix(all_runs),
+        "object": score_matrix(all_runs, "object_group"),
+        "source": score_matrix(all_runs, "source_group"),
+    }
     report = {
         "split_version": split_version,
         "manifest_sha256": manifest_hash,
@@ -371,8 +463,9 @@ def main():
     }
     paths = write_outputs(
         args.output_dir,
-        args.try_number,
+        f"try_{args.try_number}" if args.try_number is not None else "auto",
         seed_rows,
+        score_matrices,
         report,
         args.allow_overwrite,
     )

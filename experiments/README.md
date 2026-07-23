@@ -23,6 +23,7 @@
 ## Current FastFlow printer protocol
 
 - Полное описание: `printer/fastflow_printer384_v2_protocol.md`.
+- Итоговый отчёт ResNet18/DeiT: `printer/fastflow_printer384_v2_final_report.md`.
 - Зафиксированный split и аудит: `printer/dataset_v384_audit/`.
 - Top-k выбирается только на labeled calibration; threshold — только по normal calibration scores.
 - Test оценивается один раз с зафиксированным post-processing.
