@@ -1,0 +1,25 @@
+{
+  "validation_status": "passed",
+  "config_name": "deit_base_distilled_384",
+  "seed": 2025,
+  "best_epoch": 40,
+  "best_normal_val_loss": 81271.27047729492,
+  "selected_top_k_pixels": 147456,
+  "selected_top_k_fraction": 1.0,
+  "calibration_primary_roc_auc": 0.9426136363636364,
+  "calibration_object_roc_auc": 0.97,
+  "calibration_source_image_roc_auc": 0.84,
+  "calibration_balanced_accuracy": 0.7454545454545454,
+  "calibration_fpr": 0.05,
+  "calibration_fnr": 0.4590909090909091,
+  "source_artifact_sha256": {
+    "run_config.json": "7f651e4b5e6115f3c88a9a782efef0d968f418f36308f331f7cfea060db6a63b",
+    "execution_provenance.json": "dd6713cdb4cb3a9356a69e071f952ee2aad1cdd5b87fe8d84401941d71765fee",
+    "train_history.csv": "416eefa0d829b31a1f86fb9a2dfdeda88257b33c4238e3fdc67753c34d501da6",
+    "training_summary.json": "4e2a10a39090b7f6116804c686eb24dd962c744b1e06b152ed785838b0d3864d",
+    "calibration_selection.json": "48dc16a6bd352d53d06b5db70a844b95f987a5bfe6a6b95e4b25ac31b6c9fa02",
+    "calibration_metrics.json": "8564bdbe45604361858f1b90de088312f37c3de0e1e726eeb10f1e9e95cdafa6",
+    "calibration_top_k_sweep.csv": "af81b3f2b0575fdcec53b4004cc63d131d490bb9621cc64d13b6df30ffadcb21",
+    "calibration_scores.csv": "530d02614c827c466c69894401676bdc97f42b505198f0eefdd372d04b5c5b49"
+  }
+}

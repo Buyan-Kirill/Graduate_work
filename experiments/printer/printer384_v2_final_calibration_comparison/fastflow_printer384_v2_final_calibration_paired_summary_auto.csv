@@ -1,0 +1,2 @@
+paired_seeds,deit_wins,ties,deit_minus_resnet_mean,deit_minus_resnet_std,deit_minus_resnet_min,deit_minus_resnet_max
+3,2,0,-0.0014393939393939255,0.039291624855006445,-0.0467045454545455,0.02386363636363642

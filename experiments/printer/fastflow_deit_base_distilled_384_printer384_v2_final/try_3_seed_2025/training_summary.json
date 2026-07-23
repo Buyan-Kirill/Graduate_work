@@ -1,0 +1,8 @@
+{
+  "best_epoch": 40,
+  "best_normal_val_loss": 81271.27047729492,
+  "final_train_loss": 86972.27176757813,
+  "final_normal_val_loss": 81271.27047729492,
+  "training_duration_seconds": 1204.8147442000009,
+  "peak_cuda_memory_mib": 1277.873046875
+}

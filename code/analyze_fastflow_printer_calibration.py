@@ -9,11 +9,39 @@ from fastflow_printer_pipeline import PRINTER_CONFIGS, experiment_log_dir
 
 PRIMARY_METRIC = "calibration_source_group_balanced_tile_roc_auc"
 DEFAULT_CONFIGS = ["resnet18_256", "resnet18_384", "deit_base_distilled_384"]
+REFERENCE_CONFIG = "resnet18_384"
+CANDIDATE_CONFIG = "deit_base_distilled_384"
+REQUIRED_ARTIFACTS = (
+    "calibration_metrics.json",
+    "training_summary.json",
+    "train_history.csv",
+    "calibration_scores.csv",
+    "calibration_top_k_sweep.csv",
+)
+
+
+def resolve_calibration_log_dir(experiments_root, config_name, try_number, seed):
+    config = PRINTER_CONFIGS[config_name]
+    if try_number is not None:
+        return experiment_log_dir(experiments_root, config, try_number, seed)
+
+    run_root = Path(experiments_root) / config["tag"]
+    candidates = [
+        path
+        for path in run_root.glob(f"try_*_seed_{seed}")
+        if all((path / name).is_file() for name in REQUIRED_ARTIFACTS)
+    ]
+    if len(candidates) != 1:
+        raise RuntimeError(
+            f"Expected one completed {config_name} seed {seed} run, found {candidates}"
+        )
+    return candidates[0]
 
 
 def load_calibration_run(experiments_root, config_name, try_number, seed):
-    config = PRINTER_CONFIGS[config_name]
-    log_dir = experiment_log_dir(experiments_root, config, try_number, seed)
+    log_dir = resolve_calibration_log_dir(
+        experiments_root, config_name, try_number, seed
+    )
     paths = {
         "metrics": log_dir / "calibration_metrics.json",
         "training": log_dir / "training_summary.json",
@@ -33,6 +61,7 @@ def load_calibration_run(experiments_root, config_name, try_number, seed):
 
     row = {
         "config_name": config_name,
+        "try_number": int(log_dir.name.split("_seed_")[0].removeprefix("try_")),
         "seed": int(seed),
         "selected_top_k_pixels": metrics["selected_top_k_pixels"],
         "selected_top_k_fraction": metrics["selected_top_k_fraction"],
@@ -94,6 +123,31 @@ def summarize_configs(per_seed):
     )
 
 
+def summarize_primary_pair(per_seed):
+    paired = per_seed.pivot(index="seed", columns="config_name", values=PRIMARY_METRIC)
+    required = [REFERENCE_CONFIG, CANDIDATE_CONFIG]
+    if not set(required).issubset(paired.columns):
+        return pd.DataFrame(), pd.DataFrame()
+
+    paired = paired[required].dropna().reset_index()
+    paired["deit_minus_resnet"] = paired[CANDIDATE_CONFIG] - paired[REFERENCE_CONFIG]
+    delta = paired["deit_minus_resnet"]
+    summary = pd.DataFrame(
+        [
+            {
+                "paired_seeds": len(paired),
+                "deit_wins": int((delta > 0).sum()),
+                "ties": int((delta == 0).sum()),
+                "deit_minus_resnet_mean": delta.mean(),
+                "deit_minus_resnet_std": delta.std(),
+                "deit_minus_resnet_min": delta.min(),
+                "deit_minus_resnet_max": delta.max(),
+            }
+        ]
+    )
+    return paired, summary
+
+
 def write_csv(path, frame, allow_overwrite):
     if path.exists() and not allow_overwrite:
         raise FileExistsError(f"Refusing to overwrite {path}")
@@ -107,7 +161,12 @@ def parse_args():
         type=Path,
         default=Path("experiments/printer"),
     )
-    parser.add_argument("--try-number", type=int, default=1)
+    parser.add_argument(
+        "--try-number",
+        type=int,
+        default=None,
+        help="Use one explicit try for every config/seed; otherwise auto-detect.",
+    )
     parser.add_argument("--configs", nargs="+", default=DEFAULT_CONFIGS)
     parser.add_argument("--seeds", type=int, nargs="+", default=[42, 123, 2025])
     parser.add_argument(
@@ -142,18 +201,20 @@ def main():
 
     per_seed = pd.DataFrame(rows)
     by_config = summarize_configs(per_seed)
+    paired, paired_summary = summarize_primary_pair(per_seed)
     source_scores = pd.concat(source_frames, ignore_index=True)
     sweeps = pd.concat(sweep_frames, ignore_index=True)
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    run_label = f"try_{args.try_number}" if args.try_number is not None else "auto"
     outputs = {
         "per_seed": args.output_dir
-        / f"fastflow_printer384_v2_final_calibration_per_seed_try_{args.try_number}.csv",
+        / f"fastflow_printer384_v2_final_calibration_per_seed_{run_label}.csv",
         "by_config": args.output_dir
-        / f"fastflow_printer384_v2_final_calibration_by_config_try_{args.try_number}.csv",
+        / f"fastflow_printer384_v2_final_calibration_by_config_{run_label}.csv",
         "source_scores": args.output_dir
-        / f"fastflow_printer384_v2_final_calibration_source_scores_try_{args.try_number}.csv",
+        / f"fastflow_printer384_v2_final_calibration_source_scores_{run_label}.csv",
         "top_k_sweeps": args.output_dir
-        / f"fastflow_printer384_v2_final_calibration_top_k_sweeps_try_{args.try_number}.csv",
+        / f"fastflow_printer384_v2_final_calibration_top_k_sweeps_{run_label}.csv",
     }
     frames = {
         "per_seed": per_seed,
@@ -161,6 +222,16 @@ def main():
         "source_scores": source_scores,
         "top_k_sweeps": sweeps,
     }
+    if not paired.empty:
+        outputs.update(
+            {
+                "paired": args.output_dir
+                / f"fastflow_printer384_v2_final_calibration_paired_{run_label}.csv",
+                "paired_summary": args.output_dir
+                / f"fastflow_printer384_v2_final_calibration_paired_summary_{run_label}.csv",
+            }
+        )
+        frames.update({"paired": paired, "paired_summary": paired_summary})
     existing = [path for path in outputs.values() if path.exists()]
     if existing and not args.allow_overwrite:
         raise FileExistsError(f"Refusing to overwrite calibration reports: {existing}")
@@ -168,6 +239,9 @@ def main():
         write_csv(path, frames[name], args.allow_overwrite)
 
     print(by_config.to_string(index=False))
+    if not paired.empty:
+        print(paired.to_string(index=False))
+        print(paired_summary.to_string(index=False))
     print(json.dumps({name: str(path) for name, path in outputs.items()}, indent=2))
 
 
