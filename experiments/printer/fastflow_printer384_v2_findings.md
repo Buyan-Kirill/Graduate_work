@@ -369,6 +369,30 @@ Sources:
 - `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/test_bootstrap_ci.json`
 - `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/test_execution_provenance.json`
 
+### Test 4: DeiT-384, seed 42
+
+- Calibration selection was reused unchanged.
+- Primary source-group-balanced tile ROC AUC: `0.92761456230844` with per-run
+  95% hierarchical-bootstrap interval
+  `[0.858022670199541, 0.9855165028974553]`.
+- Tile counts: `FP=3`, `FN=25`, `TN=50`, `TP=20`.
+- Object-max counts: `FP=3`, `FN=2`, `TN=50`, `TP=5`.
+- Source-image-max counts: `FP=2`, `FN=2`, `TN=7`, `TP=5`.
+- Paired primary difference is `+0.0216763709960991`, reversing calibration
+  difference `-0.0467045454545455`. However, DeiT makes 28 tile errors versus
+  ResNet's 14 due 25 false negatives at the frozen threshold.
+
+Interpretation: ranking transfers better than the absolute calibration
+threshold on this seed. This is not enough to choose a different threshold;
+test remains evaluation-only.
+
+Sources:
+
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_1_seed_42/test_metrics.json`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_1_seed_42/test_scores.csv`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_1_seed_42/test_bootstrap_ci.json`
+- `fastflow_deit_base_distilled_384_printer384_v2_final/try_1_seed_42/test_execution_provenance.json`
+
 ## Decision log
 
 | Date | Evidence available | Decision | Reason |

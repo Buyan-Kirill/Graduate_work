@@ -58,7 +58,9 @@ than speculation.
   over the six primary checkpoints. Freeze commit `b2893c7` was pushed.
   Locked test has started: all ResNet18-384 seeds 42/123/2025 completed with
   primary AUC `0.9059381913123409 / 0.9327921889146379 /
-  0.8770595743384859`; the three DeiT checkpoints have not yet been tested.
+  0.8770595743384859`. DeiT seed 42 completed at `0.92761456230844` but made
+  28 tile threshold errors versus paired ResNet's 14; DeiT seeds 123/2025
+  have not yet been tested.
 - Current execution/protocol base commit: `f848062`.
 
 ### Non-negotiable execution limits

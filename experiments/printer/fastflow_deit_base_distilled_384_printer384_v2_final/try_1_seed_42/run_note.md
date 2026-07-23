@@ -45,3 +45,21 @@ configured clipping is part of the optimizer dynamics rather than an
 occasional safety guard. The next experiment is a single-factor no-clipping
 ablation at seed 42. All other settings remain unchanged. This decision uses
 calibration evidence only; the locked test remains untouched.
+
+## Locked test outcome
+
+- Executed once after calibration freeze; selection matches
+  `calibration_selection.json` (full map and threshold
+  `-0.5427837193012238`).
+- Source-group-balanced tile ROC AUC: `0.92761456230844`; per-run 95%
+  hierarchical-bootstrap interval: `[0.858022670199541,
+  0.9855165028974553]`.
+- Tile threshold counts: `FP=3`, `FN=25`, `TN=50`, `TP=20`.
+- Object-max threshold counts: `FP=3`, `FN=2`, `TN=50`, `TP=5`.
+- Source-image-max threshold counts: `FP=2`, `FN=2`, `TN=7`, `TP=5`.
+- Paired primary difference versus ResNet seed 42 is
+  `+0.0216763709960991`, reversing the calibration difference
+  `-0.0467045454545455`. DeiT makes 14 more tile threshold errors.
+
+Ranking and the frozen operating threshold therefore disagree on this seed;
+both facts are retained for the final paired analysis.
