@@ -39,3 +39,17 @@ Training, top-k and score-distribution figures were visually checked against
 their CSV/JSON sources. This second seed confirms full-map top-k stability for
 ResNet18 while showing moderate ranking variability. Proceed to the paired
 DeiT baseline at seed 123; the locked test remains untouched.
+
+## Locked test outcome
+
+- Executed once after calibration freeze; selection matches
+  `calibration_selection.json` (full map and threshold
+  `-0.5344466358423233`).
+- Source-group-balanced tile ROC AUC: `0.9327921889146379`; per-run 95%
+  hierarchical-bootstrap interval: `[0.8461595670014037,
+  0.9901832955404384]`.
+- Tile threshold counts: `FP=3`, `FN=11`, `TN=50`, `TP=34`.
+- Object-max threshold counts: `FP=3`, `FN=2`, `TN=50`, `TP=5`.
+- Source-image-max threshold counts: `FP=2`, `FN=2`, `TN=7`, `TP=5`.
+
+This is one predeclared seed result, not a standalone backbone conclusion.
