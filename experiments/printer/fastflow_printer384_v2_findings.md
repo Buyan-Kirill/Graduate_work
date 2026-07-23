@@ -248,6 +248,32 @@ Sources:
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/calibration_metrics.json`
 - `fastflow_deit_base_distilled_384_printer384_v2_final/try_2_seed_123/calibration_report.json`
 
+### Run 7: ResNet18-384, seed 2025
+
+- Status: completed train + calibration; source validation passed; locked test
+  inference was not run.
+- Training/full-stage duration: `625.3525913999983 / 627.3981291` seconds.
+- Peak allocated CUDA memory: `1954.37451171875` MiB.
+- Best epoch/loss: `30 / 30`, `-2965243.3`.
+- Selected top-k remains full map, `147456 / 147456` (`1.0`) for the third
+  ResNet seed; the primary curve again rises toward the endpoint.
+- Calibration source-group-balanced tile ROC AUC: `0.91875`.
+- Calibration object/source-image ROC AUC: `0.96 / 0.92`.
+- Figures were visually checked against source CSV/JSON.
+
+Interpretation: ResNet's third seed is close to seed 42 and below seed 123;
+full-map top-k is stable across all three. The paired DeiT seed 2025 remains
+required before final calibration aggregation.
+
+Sources:
+
+- `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/run_note.md`
+- `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/train_history.csv`
+- `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/training_summary.json`
+- `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/calibration_selection.json`
+- `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/calibration_metrics.json`
+- `fastflow_resnet18_384_printer384_v2_final/try_4_seed_2025/calibration_report.json`
+
 ## Decision log
 
 | Date | Evidence available | Decision | Reason |
@@ -260,6 +286,7 @@ Sources:
 | 2026-07-23 | No-clip DeiT lowers normal-val loss by `20.7%`, but primary AUC changes only `+0.002159`, source AUC is unchanged, threshold accuracy is worse, and score Spearman correlation is `0.988102`. | Do not promote or repeat no-clip. Run the predeclared ResNet18-384/DeiT baseline pair at seed 123. | The clipping hypothesis is resolved without parameter fishing: clipping is not needed for stability, but it does not explain the ranking gap. A second paired seed now tests whether the gap is reproducible. |
 | 2026-07-23 | ResNet18-384 seed 123 primary AUC is `0.936818`, `+0.016932` over seed 42; full-map top-k repeats. | Proceed to the already planned DeiT baseline seed 123, with no other changes. | Complete the paired comparison before interpreting backbone means or spending a third seed. |
 | 2026-07-23 | DeiT seed 123 primary AUC is `0.955341`, beating paired ResNet by `+0.018523`, while seed 42 difference was `-0.046705`; DeiT two-seed SD is `0.058095`. | Run the predeclared third pair at seed 2025, ResNet first and DeiT second. | Ordering is inconsistent and DeiT variance is material. A third paired seed is required to avoid cherry-picking either outcome. |
+| 2026-07-23 | ResNet18-384 seed 2025 primary AUC is `0.91875`; full-map top-k repeats for all three ResNet seeds. | Proceed to paired DeiT seed 2025 with no config changes. | Complete the already justified third pair before aggregation and freeze. |
 
 ## Update checklist after each attempt
 

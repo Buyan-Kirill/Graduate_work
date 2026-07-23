@@ -38,7 +38,7 @@ than speculation.
 - Never move, delete, or overwrite original dataset files. Review folders are
   copies and are not model inputs.
 - The locked test has not been read by the new protocol.
-- Completed training count: 6. One additional attempt failed before training
+- Completed training count: 7. One additional attempt failed before training
   because network metadata access was unavailable and is preserved in ledger.
 - Completed calibration controls: `resnet18_256`, seed 42 has primary ROC AUC
   `0.914659090909091`; `resnet18_384`, seed 42 has `0.9198863636363637`.
@@ -54,8 +54,9 @@ than speculation.
   primary AUC `0.9368181818181818`, full-map top-k. DeiT seed 123 is also
   complete at `0.9553409090909091`, reversing the paired ordering from seed
   42. Run the predeclared third pair at seed 2025 (`try_4` ResNet, then
-  `try_3` DeiT) because ordering and DeiT variance are unstable. Test remains
-  locked.
+  `try_3` DeiT) because ordering and DeiT variance are unstable. ResNet seed
+  2025 is complete at primary AUC `0.91875`; DeiT seed 2025 is next. Test
+  remains locked.
 - Current execution/protocol base commit: `f848062`.
 
 ### Non-negotiable execution limits
