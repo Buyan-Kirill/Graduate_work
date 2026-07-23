@@ -7,6 +7,9 @@ post-processing and analysis were frozen before test. The six primary
 checkpoints were evaluated once on locked test. Final results are in
 `fastflow_printer384_v2_final_report.md` and
 `printer384_v2_final_test_comparison_v2/`.
+Russian report and full hypothesis register are
+`fastflow_printer384_v2_final_report_ru.md` and
+`fastflow_printer384_v2_hypotheses_ru.md`.
 
 Goal: compare a DeiT-backed FastFlow system against ResNet18 without selecting
 post-processing on test. The result may support practical non-inferiority on

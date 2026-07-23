@@ -327,6 +327,9 @@ Known current git status at time of this handoff: `experiments/metal_nut/README.
 - Run three paired seeds: 42, 123, 2025. Select top-k only on calibration and never tune from test.
 - Locked test and paired hierarchical-bootstrap comparison are complete. Final
   report: `experiments/printer/fastflow_printer384_v2_final_report.md`.
+- Russian report and hypothesis register:
+  `experiments/printer/fastflow_printer384_v2_final_report_ru.md`,
+  `experiments/printer/fastflow_printer384_v2_hypotheses_ru.md`.
 - Interactive reproduction/inspection notebook:
   `code/FastFlow_printer_final_reproduction.ipynb`.
 - Full protocol and limitations: `experiments/printer/fastflow_printer384_v2_protocol.md`.

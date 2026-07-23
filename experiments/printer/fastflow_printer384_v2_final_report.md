@@ -1,5 +1,9 @@
 # FastFlow printer384 v2 final report
 
+Russian report and full hypothesis register:
+`fastflow_printer384_v2_final_report_ru.md`,
+`fastflow_printer384_v2_hypotheses_ru.md`.
+
 ## Short conclusion
 
 The frozen test does not reproduce the old DeiT ranking deficit. DeiT has

@@ -39,6 +39,9 @@ pip install numpy pillow tqdm
 - MVTec-гипотезы: `experiments/metal_nut/`, `experiments/hazelnut/`.
 - Текущий FastFlow-протокол на принтере: `experiments/printer/fastflow_printer384_v2_protocol.md`.
 - Итоговый FastFlow-отчёт ResNet18/DeiT: `experiments/printer/fastflow_printer384_v2_final_report.md`.
+- Итоговый отчёт и реестр гипотез на русском:
+  `experiments/printer/fastflow_printer384_v2_final_report_ru.md`,
+  `experiments/printer/fastflow_printer384_v2_hypotheses_ru.md`.
 - Ранние backbone/FastFlow проверки: `experiments/3D_printer_wide_resnet/`, `experiments/3D_printer_resnet_18/`, `experiments/3D_printer_transformer/`.
 - Текущие SuperSimpleNet эксперименты: `experiments/3D_printer_supersimplenet/`, `experiments/3D_printer_supersimplenet_head_finetune/`.
 
