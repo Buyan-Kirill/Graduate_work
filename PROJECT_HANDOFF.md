@@ -1,8 +1,33 @@
 # Project Handoff Memory
 
-Last updated: 2026-07-23
+Last updated: 2026-07-26
 
 This file is meant to be pasted into a new chat so work can continue without rebuilding context.
+
+## DeiT Recipe Control And Data Study (2026-07-26)
+
+- The final DeiT test mean `0.949385` is a valid same-test comparison with
+  ResNet18, but it is not yet a causal improvement over historical DeiT
+  because the historical test/split/evaluation protocol differed.
+- Two controlled notebooks were added:
+  `code/FastFlow_printer_deit_legacy_recipe.ipynb` and
+  `code/FastFlow_printer_deit_current_recipe.ipynb`.
+- Both use `processed_printer_dataset_384` and the approved
+  `printer_split_v2_final` manifest. The first pass is seed 42 and
+  `train_calibrate` only.
+- Legacy parameters are reconstructed from Git commit `870073e`: 24 epochs,
+  lr `1e-4`, weight decay `5e-5`, batch 14, default hidden ratio, no clipping,
+  patience 3, and the original strong augmentation. The current rerun uses
+  the frozen final DeiT recipe in a new experiment directory.
+- Top-k and threshold are selected through the current calibration-only
+  pipeline for both recipes. The historical test-selected top-k is not reused.
+- The old test has already been revealed. Recipe comparison on it is a useful
+  retrospective paired control, not a new independent confirmation.
+- Future augmentation/data-volume ablations must not inspect test after every
+  run. Select on grouped development/calibration evidence, freeze one final
+  candidate, then use a new future-session holdout for a confirmatory claim.
+- Full protocol:
+  `experiments/printer/fastflow_deit_recipe_and_data_study_protocol_ru.md`.
 
 ## Priority Runbook: FastFlow Printer Backbone Study
 

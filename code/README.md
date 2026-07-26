@@ -28,6 +28,9 @@ pip install anomalib==2.1.0 matplotlib numpy pandas pillow tqdm scikit-learn ope
 - `FastFlow_mvtec_compare.ipynb` - единый MVTec-протокол сравнения FastFlow ResNet18/DeiT и calibration-only top-k.
 - `FastFlow_printer_resnet18.ipynb` - текущие printer-запуски ResNet18-256 и resolution-matched ResNet18-384 на трёх seed.
 - `FastFlow_printer_deit.ipynb` - текущие printer-запуски DeiT Base Distilled 384 на тех же трёх seed.
+- `FastFlow_printer_deit_legacy_recipe.ipynb` - исходный неудачный DeiT try_1 recipe на новом фиксированном split; первый проход только seed 42 и calibration.
+- `FastFlow_printer_deit_current_recipe.ipynb` - новый DeiT recipe в отдельном каталоге для парного сравнения с legacy на том же split и seed.
+- `FastFlow_printer_final_reproduction.ipynb` - воспроизведение зафиксированного итогового ResNet18/DeiT исследования.
 - `fastflow_printer_pipeline.py` - общий pipeline загрузки manifest, обучения, calibration-only top-k и locked-test оценки.
 - `run_fastflow_printer_experiments.py` - CLI для раздельных этапов train/calibration и locked test.
 - `analyze_fastflow_printer_calibration.py` - компактный calibration-отчёт по seed, top-k, loss, clipping и исходным съёмкам.
@@ -61,6 +64,16 @@ pip install anomalib==2.1.0 matplotlib numpy pandas pillow tqdm scikit-learn ope
 `load` читает сохранённые метрики. Перезапись запрещена по умолчанию.
 Test-метрики нельзя использовать для повторного выбора top-k или параметров
 обучения.
+
+Все `FastFlow_printer*.ipynb` используют
+`datasets/processed_printer_dataset_384` и manifest
+`experiments/printer/dataset_v384_audit/printer_split_v2_final.csv`.
+MVTec-ноутбуки намеренно остаются на `datasets/MVTecAD`: это отдельный
+benchmark, а не printer training pipeline.
+
+Контролируемое сравнение старого и нового DeiT recipe и правила последующих
+data ablation описаны в
+`experiments/printer/fastflow_deit_recipe_and_data_study_protocol_ru.md`.
 
 Список всех автономных запусков и ссылки на их каталоги находятся в
 `experiments/printer/printer384_v2_experiment_ledger.csv`. Внутри каждого

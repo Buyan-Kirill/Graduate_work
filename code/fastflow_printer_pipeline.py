@@ -94,6 +94,30 @@ PRINTER_CONFIGS = {
         "threshold_quantile": 0.95,
         "num_workers": 0,
     },
+    "deit_base_distilled_384_legacy_try1": {
+        "name": "deit_base_distilled_384_legacy_try1",
+        "tag": "fastflow_deit_base_distilled_384_legacy_try1_printer384_v2_final",
+        "backbone": "deit_base_distilled_patch16_384",
+        "image_size": 384,
+        "flow_steps": 8,
+        "hidden_ratio": None,
+        "num_epochs": 24,
+        "learning_rate": 1e-4,
+        "weight_decay": 5e-5,
+        "eta_min": 5e-6,
+        "batch_size": 14,
+        "grad_clip_norm": None,
+        "augmentation": "legacy_deit_try1",
+        "early_stopping_patience": 3,
+        "recipe_source_git_commit": "870073e",
+        "threshold_quantile": 0.95,
+        "num_workers": 0,
+    },
+}
+PRINTER_CONFIGS["deit_base_distilled_384_current_rerun"] = {
+    **PRINTER_CONFIGS["deit_base_distilled_384"],
+    "name": "deit_base_distilled_384_current_rerun",
+    "tag": "fastflow_deit_base_distilled_384_current_rerun_printer384_v2_final",
 }
 PRINTER_CONFIGS["deit_base_distilled_384_no_clip"] = {
     **PRINTER_CONFIGS["deit_base_distilled_384"],
@@ -105,6 +129,12 @@ CONFIG_ROLES = {
     "resnet18_256": "historical printer baseline at 256 input",
     "resnet18_384": "resolution-matched ResNet18 control for DeiT-384",
     "deit_base_distilled_384": "transformer candidate using the MVTec-tested recipe",
+    "deit_base_distilled_384_legacy_try1": (
+        "historical DeiT try_1 training recipe on the frozen v2 manifest"
+    ),
+    "deit_base_distilled_384_current_rerun": (
+        "fresh rerun of the final DeiT recipe for the controlled recipe comparison"
+    ),
     "deit_base_distilled_384_no_clip": (
         "single-factor DeiT clipping ablation after saturated baseline clipping"
     ),
@@ -259,11 +289,15 @@ def write_run_note(path, run_config):
         f"- input: {config['image_size']}x{config['image_size']}",
         f"- epochs: {config['num_epochs']}",
         f"- flow_steps: {config['flow_steps']}",
+        f"- hidden_ratio: {config['hidden_ratio']}",
         f"- learning_rate: {config['learning_rate']}",
         f"- weight_decay: {config['weight_decay']}",
+        f"- eta_min: {config['eta_min']}",
         f"- batch_size: {config['batch_size']}",
         f"- grad_clip_norm: {config['grad_clip_norm']}",
         f"- augmentation: {config['augmentation']}",
+        f"- early_stopping_patience: {config.get('early_stopping_patience')}",
+        f"- recipe_source_git_commit: {config.get('recipe_source_git_commit')}",
         "",
         "Top-k and threshold are selected only on calibration. Test must not be",
         "read until the candidate configurations are frozen.",
@@ -367,6 +401,38 @@ def load_approved_manifest(
 
 
 def image_transform(image_size, augmentation="none"):
+    if augmentation == "legacy_deit_try1":
+        return transforms.Compose(
+            [
+                transforms.RandomResizedCrop(
+                    (image_size, image_size),
+                    scale=(0.3, 2.0),
+                    ratio=(0.3, 2.0),
+                ),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomVerticalFlip(p=0.5),
+                transforms.RandomRotation(degrees=90),
+                transforms.ColorJitter(
+                    brightness=0.2,
+                    contrast=0.2,
+                    saturation=0.2,
+                ),
+                transforms.RandomApply(
+                    [transforms.GaussianBlur(kernel_size=3, sigma=(0.5, 1.3))],
+                    p=0.8,
+                ),
+                transforms.ToTensor(),
+                transforms.RandomErasing(
+                    p=0.4,
+                    scale=(0.02, 0.4),
+                    ratio=(0.1, 5.0),
+                    value=0,
+                    inplace=False,
+                ),
+                transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+            ]
+        )
+
     steps = [
         transforms.Resize(
             (image_size, image_size),
@@ -529,6 +595,8 @@ def train_fastflow(model, train_dataset, normal_val_dataset, config, log_dir, se
     history = []
     best_val_loss = float("inf")
     best_epoch = None
+    epochs_without_improvement = 0
+    early_stopping_patience = config.get("early_stopping_patience")
     best_weights_path = Path(log_dir) / "best_model_weights.pth"
     for epoch in range(config["num_epochs"]):
         epoch_started = time.perf_counter()
@@ -588,7 +656,10 @@ def train_fastflow(model, train_dataset, normal_val_dataset, config, log_dir, se
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_epoch = epoch + 1
+            epochs_without_improvement = 0
             torch.save(model.state_dict(), best_weights_path)
+        else:
+            epochs_without_improvement += 1
 
         torch.save(
             {
@@ -602,12 +673,23 @@ def train_fastflow(model, train_dataset, normal_val_dataset, config, log_dir, se
             },
             Path(log_dir) / "last_checkpoint.pth",
         )
+        if (
+            early_stopping_patience is not None
+            and epochs_without_improvement >= early_stopping_patience
+        ):
+            print(
+                f"early_stopping epoch={epoch + 1} "
+                f"patience={early_stopping_patience}"
+            )
+            break
 
     load_model_weights(model, best_weights_path, device)
     pd.DataFrame(history).to_csv(Path(log_dir) / "train_history.csv", index=False)
     summary = {
         "best_epoch": best_epoch,
         "best_normal_val_loss": best_val_loss,
+        "epochs_completed": len(history),
+        "stopped_early": len(history) < config["num_epochs"],
         "final_train_loss": history[-1]["train_loss"],
         "final_normal_val_loss": history[-1]["normal_val_loss"],
         "training_duration_seconds": float(time.perf_counter() - training_started),
