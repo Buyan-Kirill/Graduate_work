@@ -17,6 +17,7 @@
 | `deit_data_strong_aug_1000` | 42 | 0.948864 | +0.075682 | 0.985 | 0.880 | 73728 | проходит предварительно |
 | `deit_data_balanced_500` | 42 | 0.930909 | +0.057727 | 0.955 | 0.880 | 147456 | проходит предварительно |
 | `deit_data_all_1671` | 42 | 0.888295 | +0.015114 | 0.935 | 0.800 | 147456 | проходит на границе |
+| `deit_data_object_uniform_1000` | 42 | 0.906591 | +0.033409 | 0.950 | 0.880 | 147456 | проходит предварительно |
 
 ## Run 1: mild photometric augmentation
 
@@ -120,6 +121,45 @@ steps. Это совместимо с гипотезой о вреде повт�
 не перешёл в лучшее ranking/threshold качество. Наблюдение согласуется с
 гипотезой о размывании normal distribution повторяющимися tiles крупнейших
 дат, но также смешано с большим числом optimizer steps.
+
+## Run 5: object-uniform 1000
+
+Источник:
+`fastflow_deit_data_object_uniform_1000_printer384_v2_data_study/try_1_seed_42`.
+
+- Validation report status: `passed`.
+- Train: 1000 tiles, все 235 source groups и 800 object groups.
+- Дата `2025-05-28`: 583/1000 tiles.
+- Best epoch: 40/40.
+- Best normal-val loss: `96627.198242`.
+- Training duration: `1198.088` seconds.
+- Calibration primary ROC AUC: `0.906590909090909`.
+- Delta к baseline: `+0.0334090909090908`.
+- Object/source-image ROC AUC: `0.95 / 0.88`.
+- Threshold balanced accuracy/FPR/FNR:
+  `0.754545 / 0.05 / 0.440909`.
+- Full-map top-k — плавный глобальный максимум.
+
+Интерпретация: максимальное покрытие source/object groups при фиксированных
+1000 tiles лучше baseline, но хуже date-balanced 500 на `-0.024318`.
+Разнообразие объектов полезно не само по себе: сильный перекос одной даты
+может перевесить выгоду дополнительного coverage.
+
+## Решение после first pass
+
+Все пять вариантов опубликованы. По заранее зафиксированному правилу выбран
+`deit_data_strong_aug_1000`:
+
+- максимальный primary ROC AUC `0.948864`;
+- следующий вариант `balanced_500` ниже на `0.017955`, то есть правило
+  упрощения при разнице не более `0.01` не применяется;
+- object/source ROC AUC также максимальны: `0.985 / 0.88`;
+- top-k максимум поддержан соседними значениями.
+
+Strong augmentation повторяется только на seed 123 и 2025. Это последние два
+разрешённых обучения: после них общий training count достигнет 15. Test не
+запускается. Вывод будет сделан по трём paired calibration seeds с явным
+учётом того, что вариант выбран как лучший из пяти на seed 42.
 
 ## Необучающий failure
 
