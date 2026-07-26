@@ -14,6 +14,7 @@
 | Config | Seed | Primary ROC AUC | Delta к baseline | Object AUC | Source AUC | Top-k | Gate |
 |---|---:|---:|---:|---:|---:|---:|---|
 | `deit_data_mild_photo_1000` | 42 | 0.890341 | +0.017159 | 0.925 | 0.800 | 147456 | проходит предварительно |
+| `deit_data_strong_aug_1000` | 42 | 0.948864 | +0.075682 | 0.985 | 0.880 | 73728 | проходит предварительно |
 
 ## Run 1: mild photometric augmentation
 
@@ -42,6 +43,36 @@
 зафиксированный gate на seed 42, но прирост `+0.017159` мал относительно
 известной seed-вариативности DeiT. Выбор победителя откладывается до завершения
 всех пяти first-pass запусков.
+
+## Run 2: strong legacy augmentation
+
+Источник:
+`fastflow_deit_data_strong_aug_1000_printer384_v2_data_study/try_1_seed_42`.
+
+- Validation report status: `passed`.
+- Train paths совпадают с baseline и mild augmentation.
+- Best epoch: 40/40.
+- Best normal-val loss: `146663.921387`.
+- Training duration: `1441.940` seconds, на `153.826` seconds (`11.9%`)
+  дольше mild augmentation.
+- Peak allocated CUDA memory: `1277.873 MiB`.
+- Gradient clipping fraction: `1.0` на каждой эпохе.
+- Calibration primary ROC AUC: `0.9488636363636362`.
+- Delta к baseline: `+0.0756818181818180`.
+- Object ROC AUC: `0.985` (`+0.060` к baseline).
+- Source-image ROC AUC: `0.88` (`+0.080` к baseline).
+- Threshold balanced accuracy/FPR/FNR:
+  `0.870455 / 0.05 / 0.209091`.
+- Выбран top-k `73728` (`0.5` map). Соседние значения также высоки:
+  `0.936023` на 49152 и `0.942500` на полном map. Максимум не выглядит
+  одиночным выбросом.
+
+Интерпретация: гипотеза о том, что сильная legacy augmentation обязательно
+мешает, на seed 42 опровергнута. Ranking и threshold recall улучшились, хотя
+normal-val likelihood loss выше. Это подтверждает, что абсолютные loss между
+разными train distributions нельзя использовать как прямую меру anomaly
+ranking. Результат пока лидирует, но один seed и пять адаптивно сравниваемых
+вариантов не исключают winner's curse.
 
 ## Необучающий failure
 
