@@ -167,3 +167,30 @@ Strong augmentation повторяется только на seed 123 и 2025. �
 Hugging Face metadata была недоступна через proxy. Локальный exact cache
 проверен с process-local `HF_HUB_OFFLINE=1`; `try_2` выполнен успешно.
 Системные proxy/VPN/Git настройки не менялись.
+
+## Confirmatory repeat: strong augmentation, seed 123
+
+Источник:
+`fastflow_deit_data_strong_aug_1000_printer384_v2_data_study/try_2_seed_123`.
+
+- Validation report status: `passed`.
+- Calibration rows полностью совпадают с paired baseline seed 123.
+- Best epoch: 40/40.
+- Best normal-val loss: `147560.601074`.
+- Calibration primary ROC AUC: `0.9595454545454545`.
+- Paired baseline: `0.9553409090909091`.
+- Paired delta: `+0.0042045454545454`.
+- Object/source-image ROC AUC: `0.99 / 0.92`.
+- Выбран top-k `73728` (`0.5` map). Соседний top-k `49152` даёт
+  `0.958636`, full map — `0.950682`; максимум не является одиночным узким
+  выбросом.
+- Threshold balanced accuracy/FPR/FNR:
+  `0.829545 / 0.05 / 0.290909`.
+- У baseline threshold balanced accuracy выше: `0.865909`.
+- Test не читался.
+
+Интерпретация: преимущество ranking на независимом от выбора seed
+воспроизвелось, но оно намного меньше наблюдавшихся на seed 42 `+0.075682`.
+Это подтверждает существенную seed-вариативность и winner's curse после выбора
+лучшего из пяти вариантов. Сильная аугментация пока улучшает ranking, но не
+калибровку рабочего порога: эти утверждения нельзя подменять друг другом.
