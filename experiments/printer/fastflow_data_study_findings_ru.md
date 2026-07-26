@@ -15,6 +15,7 @@
 |---|---:|---:|---:|---:|---:|---:|---|
 | `deit_data_mild_photo_1000` | 42 | 0.890341 | +0.017159 | 0.925 | 0.800 | 147456 | проходит предварительно |
 | `deit_data_strong_aug_1000` | 42 | 0.948864 | +0.075682 | 0.985 | 0.880 | 73728 | проходит предварительно |
+| `deit_data_balanced_500` | 42 | 0.930909 | +0.057727 | 0.955 | 0.880 | 147456 | проходит предварительно |
 
 ## Run 1: mild photometric augmentation
 
@@ -73,6 +74,28 @@ normal-val likelihood loss выше. Это подтверждает, что а�
 разными train distributions нельзя использовать как прямую меру anomaly
 ranking. Результат пока лидирует, но один seed и пять адаптивно сравниваемых
 вариантов не исключают winner's curse.
+
+## Run 3: date-balanced 500
+
+Источник:
+`fastflow_deit_data_balanced_500_printer384_v2_data_study/try_1_seed_42`.
+
+- Validation report status: `passed`.
+- Train: 500 tiles, 167 source groups, 397 object groups.
+- Best epoch: 40/40.
+- Best normal-val loss: `134476.949219`.
+- Training duration: `675.552` seconds; в `1.91` раза быстрее mild-1000.
+- Calibration primary ROC AUC: `0.9309090909090909`.
+- Delta к baseline: `+0.0577272727272727`.
+- Object/source-image ROC AUC: `0.955 / 0.88`.
+- Threshold balanced accuracy/FPR/FNR:
+  `0.840909 / 0.05 / 0.268182`.
+- Полный map снова является плавным глобальным максимумом top-k.
+
+Интерпретация: меньший и более равномерный по датам subset лучше baseline на
+seed 42, несмотря на меньшее число unique groups и вдвое меньше optimizer
+steps. Это совместимо с гипотезой о вреде повторяющихся tiles, но не доказывает
+её: одновременно изменились data composition, data volume и число шагов.
 
 ## Необучающий failure
 
