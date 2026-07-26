@@ -31,11 +31,13 @@ pip install anomalib==2.1.0 matplotlib numpy pandas pillow tqdm scikit-learn ope
 - `FastFlow_printer_deit_legacy_recipe.ipynb` - исходный неудачный DeiT try_1 recipe на новом фиксированном split; первый проход только seed 42 и calibration.
 - `FastFlow_printer_deit_current_recipe.ipynb` - новый DeiT recipe в отдельном каталоге для парного сравнения с legacy на том же split и seed.
 - `FastFlow_printer_final_reproduction.ipynb` - воспроизведение зафиксированного итогового ResNet18/DeiT исследования.
+- `FastFlow_printer_deit_data_study_reproduction.ipynb` - ручная проверка frozen strong-augmentation DeiT и отдельный запуск train/calibration/test без перезаписи.
 - `fastflow_printer_pipeline.py` - общий pipeline загрузки manifest, обучения, calibration-only top-k и locked-test оценки.
 - `run_fastflow_printer_experiments.py` - CLI для раздельных этапов train/calibration и locked test.
 - `analyze_fastflow_printer_calibration.py` - компактный calibration-отчёт по seed, top-k, loss, clipping и исходным съёмкам.
 - `report_fastflow_printer_calibration.py` - валидация первичных артефактов одного запуска и генерация статических графиков для ручного просмотра.
 - `analyze_fastflow_printer_results.py` - парное статистическое сравнение DeiT с обоими ResNet18 baseline после locked test.
+- `analyze_fastflow_printer_data_study.py` - проверяемая calibration-only агрегация data study, paired cluster bootstrap и dashboard.
 - `SuperSimpleNet_v3.ipynb` - SuperSimpleNet на MVTec.
 - `SuperSimpleNet_printer.ipynb` - базовый SuperSimpleNet на 3D-принтере.
 - `SuperSimpleNet_printer_head_finetune.ipynb` - SuperSimpleNet на 3D-принтере с fine-tuning.
@@ -65,9 +67,11 @@ pip install anomalib==2.1.0 matplotlib numpy pandas pillow tqdm scikit-learn ope
 Test-метрики нельзя использовать для повторного выбора top-k или параметров
 обучения.
 
-Все `FastFlow_printer*.ipynb` используют
-`datasets/processed_printer_dataset_384` и manifest
-`experiments/printer/dataset_v384_audit/printer_split_v2_final.csv`.
+Все текущие `FastFlow_printer*.ipynb` используют
+`datasets/processed_printer_dataset_384`. Основные backbone notebook используют
+manifest `printer_split_v2_final.csv`; data-study reproduction notebook
+использует `printer_split_v2_data_study.csv`, который сохраняет те же
+normal validation/calibration/test и расширяет только доступный normal train.
 MVTec-ноутбуки намеренно остаются на `datasets/MVTecAD`: это отдельный
 benchmark, а не printer training pipeline.
 
@@ -95,3 +99,9 @@ Data-study запуск использует тот же CLI с явными п�
 каталога сначала смотреть `run_note.md`, затем `calibration_report.md` и три
 PNG-графика. Числа и SHA-256 первичных источников лежат в
 `calibration_report.json`.
+
+Итог data study, полный реестр гипотез и автоматически пересчитанные CSV/PNG:
+
+- `experiments/printer/fastflow_data_study_final_report_ru.md`;
+- `experiments/printer/fastflow_data_study_hypotheses_ru.md`;
+- `experiments/printer/printer384_v2_data_study_analysis/`.

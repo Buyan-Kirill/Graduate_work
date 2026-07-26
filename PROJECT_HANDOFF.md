@@ -39,6 +39,32 @@ This file is meant to be pasted into a new chat so work can continue without reb
   at seeds 123 and 2025. No data-study test inference is permitted.
 - Data-study training ledger:
   `experiments/printer/fastflow_data_study_ledger.csv`.
+- Data study is complete. Seven successful study trainings were executed:
+  five seed-42 first-pass variants and strong-augmentation repeats at seeds
+  123/2025. The global hard stop of 15 trainings is reached; do not start
+  another training run in this study.
+- Strong augmentation won exploratory seed 42 at `0.948864`, but its
+  post-selection primary deltas versus no-augmentation DeiT were `+0.004205`
+  and `-0.004545` (mean `-0.000170`). The large seed-42 gain did not
+  replicate as a stable augmentation effect.
+- Strong DeiT primary AUC is above ResNet18-384 on all three calibration
+  seeds. Post-selection deltas are `+0.022727` and `+0.019318`; fixed-full-map
+  deltas are also positive. This is candidate-selection evidence, not an
+  independent holdout result.
+- Strong/no-aug/ResNet mean primary AUC are
+  `0.948826 / 0.923712 / 0.925152`; sample SD are
+  `0.010739 / 0.044221 / 0.010120`.
+- Test was not read by the data-study analysis. A new future-session holdout
+  is required for a confirmatory claim. The already revealed current test can
+  only provide retrospective diagnostics.
+- Final data-study report and hypothesis registry:
+  `experiments/printer/fastflow_data_study_final_report_ru.md` and
+  `experiments/printer/fastflow_data_study_hypotheses_ru.md`.
+- Reproducible CPU analysis/dashboard:
+  `code/analyze_fastflow_printer_data_study.py` and
+  `experiments/printer/printer384_v2_data_study_analysis/`.
+- Manual reproduction notebook:
+  `code/FastFlow_printer_deit_data_study_reproduction.ipynb`.
 
 ## Priority Runbook: FastFlow Printer Backbone Study
 
@@ -75,7 +101,8 @@ than speculation.
   copies and are not model inputs.
 - The locked test was evaluated once for the six frozen primary checkpoints;
   no post-test model, top-k or threshold tuning was performed.
-- Completed training count: 8. One additional attempt failed before training
+- Baseline/backbone phase training count was 8. The global count after the
+  completed data study is 15. One additional attempt failed before training
   because network metadata access was unavailable and is preserved in ledger.
 - Completed calibration controls: `resnet18_256`, seed 42 has primary ROC AUC
   `0.914659090909091`; `resnet18_384`, seed 42 has `0.9198863636363637`.
@@ -101,8 +128,9 @@ than speculation.
   reached `0.9454105858867765`; its tile errors were 27 versus ResNet's 17,
   but its object/source errors were 2/2 versus ResNet's 7/4. All six frozen
   test evaluations are complete; paired aggregation is next.
-- Raw locked-test matrix was fully versioned by commit `a5357d6`. Final paired
-  analysis and report are the current remaining versioning step.
+- Raw locked-test matrix was fully versioned by commit `a5357d6`; final paired
+  analysis and reports are complete. Do not tune recipes on that revealed
+  test.
 
 ### Non-negotiable execution limits
 

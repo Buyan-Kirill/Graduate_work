@@ -1,0 +1,17 @@
+{
+  "calibration_rows_identical": true,
+  "calibration_tiles": 61,
+  "calibration_source_groups": 10,
+  "old_and_study_train_paths_identical": true,
+  "train_tiles": 1000,
+  "train_paths_sha256": "3cd670c6d8cb4ed15a0ecf6cbab09ddf55dd507d423def8ac69464aef0fe3aae",
+  "test_read_by_analysis": false,
+  "bootstrap_iterations": 2000,
+  "bootstrap_seed": 20260726,
+  "notes": [
+    "Seed 42 selected the winner from five variants and is exploratory.",
+    "Seeds 123 and 2025 are the post-selection replication set.",
+    "Bootstrap resamples source groups within class and seeds.",
+    "Bootstrap does not correct top-k tuning or first-pass selection bias."
+  ]
+}

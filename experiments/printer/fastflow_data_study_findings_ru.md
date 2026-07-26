@@ -223,3 +223,17 @@ post-selection seed 123/2025 средняя primary delta равна приме�
 поэтому большой прирост seed 42 нельзя считать устойчивым эффектом аугментации.
 Финальный вывод должен учитывать все уровни метрик, но не менять primary
 критерий задним числом.
+
+## Финальный статус
+
+- Успешно завершены 7 data-study обучений; общий training count достиг 15.
+- Все data-study provenance имеют `test_inference_executed=false`.
+- Strong augmentation не подтвердила устойчивый primary-прирост относительно
+  no-aug DeiT на post-selection seed.
+- Strong DeiT выше ResNet18-384 по primary calibration AUC на 3/3 seed и
+  является кандидатом на новый независимый holdout.
+- Новые обучения и подбор параметров в текущем study остановлены.
+- Полный итог:
+  `fastflow_data_study_final_report_ru.md`.
+- Реестр гипотез:
+  `fastflow_data_study_hypotheses_ru.md`.

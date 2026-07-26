@@ -185,3 +185,14 @@ paired seeds и на source-group метриках, а не только на о
 object/source errors, loss dynamics и доля независимых source groups.
 
 Окончательный production-вывод требует нового holdout из будущих съёмок.
+
+## Статус выполнения
+
+Протокол выполнен 2026-07-26 без data-study test inference. Победитель
+first pass `deit_data_strong_aug_1000` повторён на seed 123/2025. Большой
+primary-прирост seed 42 относительно no-aug DeiT не воспроизвёлся:
+post-selection mean delta `-0.000170`. При этом strong DeiT выше
+ResNet18-384 на всех трёх calibration seed.
+
+Дальнейшее обучение остановлено на общем лимите 15 запусков. Итоговый отчёт:
+`fastflow_data_study_final_report_ru.md`.

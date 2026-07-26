@@ -42,6 +42,9 @@ pip install numpy pillow tqdm
 - Итоговый отчёт и реестр гипотез на русском:
   `experiments/printer/fastflow_printer384_v2_final_report_ru.md`,
   `experiments/printer/fastflow_printer384_v2_hypotheses_ru.md`.
+- Исследование аугментаций и состава train для DeiT:
+  `experiments/printer/fastflow_data_study_final_report_ru.md`,
+  `experiments/printer/fastflow_data_study_hypotheses_ru.md`.
 - Ранние backbone/FastFlow проверки: `experiments/3D_printer_wide_resnet/`, `experiments/3D_printer_resnet_18/`, `experiments/3D_printer_transformer/`.
 - Текущие SuperSimpleNet эксперименты: `experiments/3D_printer_supersimplenet/`, `experiments/3D_printer_supersimplenet_head_finetune/`.
 
