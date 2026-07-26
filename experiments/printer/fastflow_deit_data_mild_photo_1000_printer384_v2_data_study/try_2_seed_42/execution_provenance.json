@@ -1,0 +1,27 @@
+{
+  "started_at_utc": "2026-07-26T08:33:28.116669+00:00",
+  "git_commit": "9df40cd5ecdf0b5c86849f680a9a9805866acad2",
+  "git_worktree_dirty": false,
+  "execution_file_sha256": {
+    "code/fastflow_printer_pipeline.py": "b83e964cf3a98e35d378d7f7c7769a2732f4c2eb56eebcdd8de06d6e878e811f",
+    "code/run_fastflow_printer_experiments.py": "22618189e78b1793b315f982b7503b2f91978715f8f9d4dc447fdefee379f833"
+  },
+  "runtime_environment": {
+    "python": "3.12.5",
+    "packages": {
+      "anomalib": "2.1.0",
+      "numpy": "2.2.6",
+      "pandas": "2.3.2",
+      "scikit-learn": "1.7.2",
+      "torch": "2.7.1+cu128",
+      "torchvision": "0.22.1+cu128"
+    },
+    "torch_cuda": "12.8",
+    "cudnn": 90701,
+    "hf_hub_offline": "1",
+    "gpu_name": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
+    "gpu_total_memory_mib": 8191
+  },
+  "deterministic": true,
+  "test_inference_executed": false
+}
