@@ -16,6 +16,7 @@
 | `deit_data_mild_photo_1000` | 42 | 0.890341 | +0.017159 | 0.925 | 0.800 | 147456 | проходит предварительно |
 | `deit_data_strong_aug_1000` | 42 | 0.948864 | +0.075682 | 0.985 | 0.880 | 73728 | проходит предварительно |
 | `deit_data_balanced_500` | 42 | 0.930909 | +0.057727 | 0.955 | 0.880 | 147456 | проходит предварительно |
+| `deit_data_all_1671` | 42 | 0.888295 | +0.015114 | 0.935 | 0.800 | 147456 | проходит на границе |
 
 ## Run 1: mild photometric augmentation
 
@@ -96,6 +97,29 @@ ranking. Результат пока лидирует, но один seed и п�
 seed 42, несмотря на меньшее число unique groups и вдвое меньше optimizer
 steps. Это совместимо с гипотезой о вреде повторяющихся tiles, но не доказывает
 её: одновременно изменились data composition, data volume и число шагов.
+
+## Run 4: all 1671 normal tiles
+
+Источник:
+`fastflow_deit_data_all_1671_printer384_v2_data_study/try_1_seed_42`.
+
+- Validation report status: `passed`.
+- Train: 1671 tiles, 235 source groups, 800 object groups.
+- Best epoch: 40/40.
+- Best normal-val loss: `72784.560753`, лучший среди текущих first-pass runs.
+- Training duration: `1892.428` seconds.
+- Calibration primary ROC AUC: `0.8882954545454544`.
+- Delta к baseline: `+0.0151136363636362`.
+- Object/source-image ROC AUC: `0.935 / 0.8`.
+- Threshold balanced accuracy/FPR/FNR:
+  `0.677273 / 0.05 / 0.595455`.
+- Full-map top-k — плавный глобальный максимум.
+
+Интерпретация: все данные проходят primary gate только на границе и дают
+намного меньший прирост, чем date-balanced 500. Более низкий normal-val loss
+не перешёл в лучшее ranking/threshold качество. Наблюдение согласуется с
+гипотезой о размывании normal distribution повторяющимися tiles крупнейших
+дат, но также смешано с большим числом optimizer steps.
 
 ## Необучающий failure
 
