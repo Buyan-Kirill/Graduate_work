@@ -194,3 +194,32 @@ Hugging Face metadata была недоступна через proxy. Локал
 Это подтверждает существенную seed-вариативность и winner's curse после выбора
 лучшего из пяти вариантов. Сильная аугментация пока улучшает ranking, но не
 калибровку рабочего порога: эти утверждения нельзя подменять друг другом.
+
+## Confirmatory repeat: strong augmentation, seed 2025
+
+Источник:
+`fastflow_deit_data_strong_aug_1000_printer384_v2_data_study/try_3_seed_2025`.
+
+- Validation report status: `passed`.
+- Calibration rows полностью совпадают с paired baseline seed 2025.
+- Best epoch: 40/40.
+- Best normal-val loss: `134885.124023`.
+- Training duration: `1437.781` seconds.
+- Peak allocated CUDA memory: `1277.873 MiB`.
+- Calibration primary ROC AUC: `0.9380681818181817`.
+- Paired baseline: `0.9426136363636364`.
+- Paired delta: `-0.0045454545454547`.
+- Object/source-image ROC AUC: `0.99 / 0.92`; paired baseline:
+  `0.97 / 0.84`.
+- Выбран full-map top-k `147456`; half-map даёт только `0.926364`.
+- Threshold balanced accuracy/FPR/FNR:
+  `0.838636 / 0.05 / 0.272727`; paired baseline balanced accuracy:
+  `0.745455`.
+- Test не читался.
+
+Интерпретация: primary ranking benefit на seed 2025 не воспроизвёлся. При этом
+агрегация до object/source и рабочая threshold-метрика улучшились. По двум
+post-selection seed 123/2025 средняя primary delta равна примерно `-0.000170`,
+поэтому большой прирост seed 42 нельзя считать устойчивым эффектом аугментации.
+Финальный вывод должен учитывать все уровни метрик, но не менять primary
+критерий задним числом.
