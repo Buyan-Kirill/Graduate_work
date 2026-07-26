@@ -255,6 +255,38 @@ def build_manifest(dataset_root, config):
         record for record in fit_records
         if record["capture_group"] in normal_val_captures
     ]
+    train_sampling_ranks = None
+    if config.get("include_train_sampling_ranks"):
+        date_balanced = select_balanced(
+            train_candidates,
+            len(train_candidates),
+            seed,
+            stratum_key="source_date",
+            item_group_key="object_group",
+        )
+        object_uniform_candidates = [
+            {**record, "sampling_stratum": "all_dates"}
+            for record in train_candidates
+        ]
+        object_uniform = select_balanced(
+            object_uniform_candidates,
+            len(object_uniform_candidates),
+            seed,
+            stratum_key="sampling_stratum",
+            item_group_key="object_group",
+        )
+
+        def rank_by_path(ordered_records):
+            return {
+                record["path"].resolve().relative_to(dataset_root).as_posix(): rank
+                for rank, record in enumerate(ordered_records, start=1)
+            }
+
+        train_sampling_ranks = {
+            "train_rank_date_balanced": rank_by_path(date_balanced),
+            "train_rank_object_uniform": rank_by_path(object_uniform),
+        }
+
     train_records = select_balanced(
         train_candidates,
         int(config["train_target"]),
@@ -360,7 +392,20 @@ def build_manifest(dataset_root, config):
         rows.extend(manifest_row(record, dataset_root, split, class_name) for record in records)
 
     rows.sort(key=lambda row: (row["split"], row["class_name"], row["path"]))
-    return rows, validate_manifest(rows)
+    validation = validate_manifest(rows)
+    if train_sampling_ranks is not None:
+        for row in rows:
+            for column, ranks in train_sampling_ranks.items():
+                row[column] = ranks.get(row["path"]) if row["split"] == "train" else None
+        validation["train_sampling_ranks"] = {
+            column: {
+                "ranked_records": len(ranks),
+                "min_rank": min(ranks.values()),
+                "max_rank": max(ranks.values()),
+            }
+            for column, ranks in train_sampling_ranks.items()
+        }
+    return rows, validation
 
 
 def parse_args():

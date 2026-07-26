@@ -119,6 +119,25 @@ PRINTER_CONFIGS["deit_base_distilled_384_current_rerun"] = {
     "name": "deit_base_distilled_384_current_rerun",
     "tag": "fastflow_deit_base_distilled_384_current_rerun_printer384_v2_final",
 }
+_DATA_STUDY_OVERRIDES = {
+    "deit_data_baseline_1000": {},
+    "deit_data_mild_photo_1000": {"augmentation": "mild_photometric"},
+    "deit_data_strong_aug_1000": {"augmentation": "legacy_deit_try1"},
+    "deit_data_balanced_500": {"train_target": 500},
+    "deit_data_all_1671": {"train_target": 1671},
+    "deit_data_object_uniform_1000": {
+        "train_sampling_rank": "train_rank_object_uniform",
+    },
+}
+for _name, _overrides in _DATA_STUDY_OVERRIDES.items():
+    PRINTER_CONFIGS[_name] = {
+        **PRINTER_CONFIGS["deit_base_distilled_384"],
+        "name": _name,
+        "tag": f"fastflow_{_name}_printer384_v2_data_study",
+        "train_sampling_rank": "train_rank_date_balanced",
+        "train_target": 1000,
+        **_overrides,
+    }
 PRINTER_CONFIGS["deit_base_distilled_384_no_clip"] = {
     **PRINTER_CONFIGS["deit_base_distilled_384"],
     "name": "deit_base_distilled_384_no_clip",
@@ -139,6 +158,16 @@ CONFIG_ROLES = {
         "single-factor DeiT clipping ablation after saturated baseline clipping"
     ),
 }
+CONFIG_ROLES.update(
+    {
+        "deit_data_baseline_1000": "data-study reference matching the final 1000-tile DeiT train subset",
+        "deit_data_mild_photo_1000": "mild photometric augmentation ablation at fixed train data",
+        "deit_data_strong_aug_1000": "legacy strong augmentation ablation at fixed current DeiT recipe",
+        "deit_data_balanced_500": "nested 500-tile date-balanced train-volume ablation",
+        "deit_data_all_1671": "all eligible normal train tiles without a volume cap",
+        "deit_data_object_uniform_1000": "1000-tile object-uniform sampling ablation without date balancing",
+    }
+)
 
 
 def resolve_project_root(start=None):
@@ -298,6 +327,8 @@ def write_run_note(path, run_config):
         f"- augmentation: {config['augmentation']}",
         f"- early_stopping_patience: {config.get('early_stopping_patience')}",
         f"- recipe_source_git_commit: {config.get('recipe_source_git_commit')}",
+        f"- train_sampling_rank: {config.get('train_sampling_rank')}",
+        f"- train_target: {config.get('train_target')}",
         "",
         "Top-k and threshold are selected only on calibration. Test must not be",
         "read until the candidate configurations are frozen.",
@@ -459,6 +490,46 @@ def image_transform(image_size, augmentation="none"):
         ]
     )
     return transforms.Compose(steps)
+
+
+def select_train_rows(manifest, config):
+    rows = manifest.loc[manifest["split"] == "train"].copy()
+    rank_column = config.get("train_sampling_rank")
+    if rank_column is None:
+        return rows
+    if rank_column not in rows:
+        raise ValueError(f"Manifest does not contain train rank column: {rank_column}")
+
+    ranks = pd.to_numeric(rows[rank_column], errors="coerce")
+    if ranks.isna().any() or ranks.duplicated().any():
+        raise ValueError(f"Invalid train sampling ranks in {rank_column}")
+    target = int(config["train_target"])
+    if target < 1 or target > len(rows):
+        raise ValueError(f"Invalid train target {target}; available={len(rows)}")
+    selected = rows.loc[ranks <= target].copy()
+    if len(selected) != target:
+        raise ValueError(
+            f"Train rank {rank_column} selected {len(selected)} rows, expected {target}"
+        )
+    return selected
+
+
+def summarize_train_subset(rows, config):
+    paths = sorted(rows["path"].astype(str))
+    path_digest = hashlib.sha256("\n".join(paths).encode("utf-8")).hexdigest()
+    return {
+        "sampling_rank": config.get("train_sampling_rank"),
+        "target": config.get("train_target"),
+        "selected_tiles": int(len(rows)),
+        "source_dates": int(rows["source_date"].nunique()),
+        "source_groups": int(rows["source_group"].nunique()),
+        "object_groups": int(rows["object_group"].nunique()),
+        "tiles_by_date": {
+            str(date): int(count)
+            for date, count in rows.groupby("source_date").size().items()
+        },
+        "selected_paths_sha256": path_digest,
+    }
 
 
 class ManifestDataset(Dataset):
@@ -1249,10 +1320,15 @@ def run_experiment(
 
     train_transform = image_transform(config["image_size"], config.get("augmentation", "none"))
     eval_transform = image_transform(config["image_size"], "none")
+    split_rows = {
+        split: manifest.loc[manifest["split"] == split].copy()
+        for split in ("train", "normal_val_loss", "calibration", "test")
+    }
+    split_rows["train"] = select_train_rows(manifest, config)
     datasets = {
         split: ManifestDataset(
             dataset_root,
-            manifest.loc[manifest["split"] == split],
+            split_rows[split],
             train_transform if split == "train" else eval_transform,
             include_metadata=split in {"calibration", "test"},
         )
@@ -1280,6 +1356,7 @@ def run_experiment(
             "code/fastflow_printer_pipeline.py"
         ],
         **git_state,
+        "train_subset": summarize_train_subset(split_rows["train"], config),
         "split_counts": {split: len(dataset) for split, dataset in datasets.items()},
         "split_class_counts": {
             f"{split}/{class_name}": int(len(rows))

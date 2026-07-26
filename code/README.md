@@ -75,6 +75,21 @@ benchmark, а не printer training pipeline.
 data ablation описаны в
 `experiments/printer/fastflow_deit_recipe_and_data_study_protocol_ru.md`.
 
+Data-study запуск использует тот же CLI с явными путями:
+
+```powershell
+.venv\Scripts\python.exe code\run_fastflow_printer_experiments.py `
+  --stage train-calibrate `
+  --configs deit_data_mild_photo_1000 `
+  --seeds 42 `
+  --manifest-path experiments/printer/dataset_v384_audit/printer_split_v2_data_study.csv `
+  --split-config-path configs/printer_split_v2_data_study.json `
+  --output-dir experiments/printer/printer384_v2_data_study_summaries
+```
+
+Каждая config запускается отдельной командой и отдельным коммитом результатов,
+чтобы GPU-обучение оставалось последовательным, а provenance — проверяемым.
+
 Список всех автономных запусков и ссылки на их каталоги находятся в
 `experiments/printer/printer384_v2_experiment_ledger.csv`. Внутри каждого
 каталога сначала смотреть `run_note.md`, затем `calibration_report.md` и три

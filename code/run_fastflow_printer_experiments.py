@@ -29,6 +29,28 @@ def parse_args():
     parser.add_argument("--seeds", type=int, nargs="+", default=[42, 123, 2025])
     parser.add_argument("--try-number", type=int, default=1)
     parser.add_argument("--bootstrap-iterations", type=int, default=2000)
+    parser.add_argument(
+        "--dataset-root",
+        type=Path,
+        default=Path("datasets/processed_printer_dataset_384"),
+    )
+    parser.add_argument(
+        "--manifest-path",
+        type=Path,
+        default=Path(
+            "experiments/printer/dataset_v384_audit/printer_split_v2_final.csv"
+        ),
+    )
+    parser.add_argument(
+        "--split-config-path",
+        type=Path,
+        default=Path("configs/printer_split_v2_final.json"),
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("experiments/printer/printer384_v2_final_summaries"),
+    )
     parser.add_argument("--allow-overwrite", action="store_true")
     parser.add_argument("--skip-hash-verification", action="store_true")
     return parser.parse_args()
@@ -41,18 +63,12 @@ def main():
         raise KeyError(f"Unknown configs: {sorted(unknown)}")
 
     project_root = resolve_project_root()
-    dataset_root = project_root / "datasets" / "processed_printer_dataset_384"
-    manifest_path = (
-        project_root
-        / "experiments"
-        / "printer"
-        / "dataset_v384_audit"
-        / "printer_split_v2_final.csv"
-    )
-    split_config_path = project_root / "configs" / "printer_split_v2_final.json"
+    dataset_root = project_root / args.dataset_root
+    manifest_path = project_root / args.manifest_path
+    split_config_path = project_root / args.split_config_path
     experiments_root = project_root / "experiments" / "printer"
 
-    load_approved_manifest(
+    _, split_config = load_approved_manifest(
         dataset_root,
         manifest_path,
         split_config_path,
@@ -95,9 +111,9 @@ def main():
     summary = pd.DataFrame(results)
     stage_name = args.stage.replace("-", "_")
     config_slug = "-".join(args.configs)
-    output_dir = experiments_root / "printer384_v2_final_summaries"
+    output_dir = project_root / args.output_dir
     output_path = output_dir / (
-        f"fastflow_printer384_v2_final_{config_slug}_{stage_name}_"
+        f"fastflow_{split_config['version']}_{config_slug}_{stage_name}_"
         f"try_{args.try_number}.csv"
     )
     if output_path.exists() and not args.allow_overwrite:

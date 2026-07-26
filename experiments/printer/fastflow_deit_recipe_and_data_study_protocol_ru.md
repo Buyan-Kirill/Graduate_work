@@ -112,6 +112,71 @@ calibration score distributions, top-k sweep и метрики по source group
 контроля: одинаковые epochs и одинаковые steps. Иначе улучшение нельзя
 однозначно приписать разнообразию данных.
 
+## Зафиксированный first pass
+
+Аудит доступного normal train после отделения normal validation:
+
+| Дата | Tiles | Source images | Objects |
+|---|---:|---:|---:|
+| 2024-12-16 | 72 | 5 | 14 |
+| 2025-01-15 | 44 | 2 | 44 |
+| 2025-01-29 | 28 | 5 | 13 |
+| 2025-04-02 | 678 | 75 | 164 |
+| 2025-05-26 | 108 | 31 | 78 |
+| 2025-05-28 | 741 | 117 | 487 |
+
+Всего доступно 1671 tile, 235 source images и 800 objects. Две крупнейшие
+даты содержат 1419/1671 (`84.9%`) tiles. Текущий date-balanced subset из 1000
+содержит 748/1000 (`74.8%`) tiles этих дат.
+
+До первого запуска зафиксировано семейство из пяти вариантов на seed 42:
+
+| Config | Единственное изменение относительно current DeiT |
+|---|---|
+| `deit_data_mild_photo_1000` | слабый ColorJitter и редкий GaussianBlur |
+| `deit_data_strong_aug_1000` | исходная сильная legacy augmentation |
+| `deit_data_balanced_500` | вложенный date-balanced train из 500 tiles |
+| `deit_data_all_1671` | все 1671 допустимых normal tiles |
+| `deit_data_object_uniform_1000` | 1000 tiles с object-uniform sampling без балансировки дат |
+
+Baseline — ранее выполненный `deit_base_distilled_384`, seed 42. Проверено,
+что его 1000 train paths точно совпадают с
+`train_rank_date_balanced <= 1000` нового data-study manifest, а
+normal validation, calibration и test rows идентичны. Поэтому новый baseline
+не переобучается и один GPU-run не расходуется повторно.
+
+Состав фиксированных subsets:
+
+| Subset | Tiles | Source images | Objects | Tiles по шести датам |
+|---|---:|---:|---:|---|
+| date-balanced 500 | 500 | 167 | 397 | 72/44/28/124/108/124 |
+| date-balanced 1000 | 1000 | 212 | 687 | 72/44/28/374/108/374 |
+| all 1671 | 1671 | 235 | 800 | 72/44/28/678/108/741 |
+| object-uniform 1000 | 1000 | 235 | 800 | 24/44/17/249/83/583 |
+
+Основной first-pass критерий — calibration source-group-balanced tile ROC
+AUC. Дополнительно проверяются object/source ROC AUC, FPR/FNR при
+calibration threshold, форма top-k curve, best epoch и loss dynamics.
+
+В следующий этап проходит не более одного варианта. Gate:
+
+- технически валидное обучение и конечные loss;
+- улучшение основной calibration ROC AUC относительно seed-42 baseline хотя
+  бы на `0.015`;
+- object ROC AUC не хуже baseline более чем на `0.01`;
+- отсутствие деградации source-image ROC AUC;
+- максимум top-k не должен быть одиночным необъяснимым выбросом сетки.
+
+Если проходят несколько вариантов, выбирается максимальный primary ROC AUC;
+при разнице не более `0.01` выбирается более простой вариант: без сильной
+аугментации, затем меньший train subset. Выбранный вариант повторяется на
+seed 123 и 2025 и сравнивается с уже сохранёнными baseline-моделями этих
+seed. Если gate не проходит никто, дополнительные обучения не запускаются.
+
+Это exploratory selection среди пяти сравнений. Даже повторение на трёх seed
+не превращает текущий раскрытый test в независимое подтверждение. Результаты
+всех вариантов публикуются, а не только победителя.
+
 ## Критерии решения
 
 Улучшение считается устойчивым, если направление эффекта сохраняется на

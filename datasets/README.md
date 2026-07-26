@@ -167,6 +167,14 @@ processed_printer_dataset/
 проверки записаны в
 `experiments/printer/dataset_v384_audit/printer_split_v2_final_domain_review.md`.
 
+Для FastFlow data ablation используется manifest
+`printer_split_v2_data_study.csv`. Его normal validation, calibration и test
+полностью совпадают с `printer_split_v2_final`; train расширен до всех 1671
+допустимых normal tiles и содержит две воспроизводимые колонки ранга:
+date-balanced и object-uniform. Конкретный запуск выбирает только первые
+`N` строк соответствующего ранга и записывает SHA-256 выбранного списка путей
+в `run_config.json`.
+
 ## Legacy: filtered printer dataset
 
 Путь: `datasets/filtered_printer_dataset/`.

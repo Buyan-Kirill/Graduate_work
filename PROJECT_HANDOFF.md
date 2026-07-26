@@ -28,6 +28,17 @@ This file is meant to be pasted into a new chat so work can continue without reb
   candidate, then use a new future-session holdout for a confirmatory claim.
 - Full protocol:
   `experiments/printer/fastflow_deit_recipe_and_data_study_protocol_ru.md`.
+- The data-study first pass is now frozen before training. It contains five
+  seed-42 variants: mild augmentation, strong legacy augmentation, nested
+  date-balanced 500, all 1671, and object-uniform 1000.
+- The data-study manifest keeps normal validation/calibration/test identical
+  to v2 final and adds reproducible date-balanced/object-uniform train ranks.
+  The first 1000 date-balanced paths exactly match the final baseline train.
+- Baseline seed 42 is reused rather than retrained. At most one variant can
+  advance through the predeclared calibration gate and receive paired repeats
+  at seeds 123 and 2025. No data-study test inference is permitted.
+- Data-study training ledger:
+  `experiments/printer/fastflow_data_study_ledger.csv`.
 
 ## Priority Runbook: FastFlow Printer Backbone Study
 

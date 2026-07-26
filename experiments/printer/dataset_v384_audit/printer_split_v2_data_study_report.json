@@ -1,0 +1,74 @@
+{
+  "version": "printer_384_v2_data_study",
+  "approved": true,
+  "preview": false,
+  "grouping": {
+    "normal_split_unit": "source image",
+    "normal_object_unit": "instance-mask object",
+    "anomaly_split_unit": "source capture"
+  },
+  "excluded_eval_paths": {
+    "anomalies/objects_parts/2025-08-08_14-09-52_L0128_1_tile_3072_960.png": "out-of-scope defect confirmed by domain reviewer"
+  },
+  "excluded_eval_object_groups": {
+    "normal:2025-06-25_test:141_obj3": "ambiguous deviation confirmed by domain reviewer",
+    "normal:2025-06-25_test:143_obj7": "ambiguous deviation confirmed by domain reviewer"
+  },
+  "counts": {
+    "calibration/anomalies": 21,
+    "calibration/good": 40,
+    "normal_val_loss/good": 160,
+    "test/anomalies": 45,
+    "test/good": 53,
+    "train/good": 1671
+  },
+  "source_image_group_counts": {
+    "calibration/anomalies": 5,
+    "calibration/good": 5,
+    "normal_val_loss/good": 44,
+    "test/anomalies": 7,
+    "test/good": 9,
+    "train/good": 235
+  },
+  "object_group_counts": {
+    "calibration/anomalies": 5,
+    "calibration/good": 40,
+    "normal_val_loss/good": 140,
+    "test/anomalies": 7,
+    "test/good": 53,
+    "train/good": 800
+  },
+  "source_image_group_overlap": {
+    "train_vs_normal_val_loss/good": [],
+    "calibration_vs_test/good": [],
+    "calibration_vs_test/anomalies": []
+  },
+  "object_group_overlap": {
+    "train_vs_normal_val_loss/good": [],
+    "calibration_vs_test/good": [],
+    "calibration_vs_test/anomalies": []
+  },
+  "exact_hash_overlap": {
+    "calibration_vs_normal_val_loss": 0,
+    "calibration_vs_test": 0,
+    "calibration_vs_train": 0,
+    "normal_val_loss_vs_test": 0,
+    "normal_val_loss_vs_train": 0,
+    "test_vs_train": 0
+  },
+  "is_source_image_disjoint": true,
+  "is_object_disjoint": true,
+  "is_hash_disjoint": true,
+  "train_sampling_ranks": {
+    "train_rank_date_balanced": {
+      "ranked_records": 1671,
+      "min_rank": 1,
+      "max_rank": 1671
+    },
+    "train_rank_object_uniform": {
+      "ranked_records": 1671,
+      "min_rank": 1,
+      "max_rank": 1671
+    }
+  }
+}
