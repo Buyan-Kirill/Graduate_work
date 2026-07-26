@@ -1,0 +1,68 @@
+{
+  "config": {
+    "name": "deit_data_mild_photo_1000",
+    "tag": "fastflow_deit_data_mild_photo_1000_printer384_v2_data_study",
+    "backbone": "deit_base_distilled_patch16_384",
+    "image_size": 384,
+    "flow_steps": 8,
+    "hidden_ratio": 0.5,
+    "num_epochs": 40,
+    "learning_rate": 3e-05,
+    "weight_decay": 1e-05,
+    "eta_min": 1e-06,
+    "batch_size": 10,
+    "grad_clip_norm": 10.0,
+    "augmentation": "mild_photometric",
+    "threshold_quantile": 0.95,
+    "num_workers": 0,
+    "train_sampling_rank": "train_rank_date_balanced",
+    "train_target": 1000
+  },
+  "seed": 42,
+  "try_number": 1,
+  "started_at_utc": "2026-07-26T08:31:39.310787+00:00",
+  "device": "cuda",
+  "deterministic": true,
+  "split_version": "printer_384_v2_data_study",
+  "manifest_sha256": "972f3456771e7190aaa8b1101f4de7b19d96ac19a911d004a65fdc62a7909a39",
+  "split_config_sha256": "aba291e58a85f713a2b9a3619d7542830e377ffad6a344b3da02667ff60898f6",
+  "pipeline_sha256": "b83e964cf3a98e35d378d7f7c7769a2732f4c2eb56eebcdd8de06d6e878e811f",
+  "git_commit": "4faa2560add4daa0eaa8b1e0e5fe1d24b90dec21",
+  "git_worktree_dirty": false,
+  "train_subset": {
+    "sampling_rank": "train_rank_date_balanced",
+    "target": 1000,
+    "selected_tiles": 1000,
+    "source_dates": 6,
+    "source_groups": 212,
+    "object_groups": 687,
+    "tiles_by_date": {
+      "2024-12-16": 72,
+      "2025-01-15": 44,
+      "2025-01-29": 28,
+      "2025-04-02": 374,
+      "2025-05-26": 108,
+      "2025-05-28": 374
+    },
+    "selected_paths_sha256": "3cd670c6d8cb4ed15a0ecf6cbab09ddf55dd507d423def8ac69464aef0fe3aae"
+  },
+  "split_counts": {
+    "train": 1000,
+    "normal_val_loss": 160,
+    "calibration": 61,
+    "test": 98
+  },
+  "split_class_counts": {
+    "calibration/anomalies": 21,
+    "calibration/good": 40,
+    "normal_val_loss/good": 160,
+    "test/anomalies": 45,
+    "test/good": 53,
+    "train/good": 1671
+  },
+  "top_k_selection": "calibration source-group-balanced tile ROC AUC; ties by object/tile ROC AUC, AP, then smaller k",
+  "threshold_selection": "calibration normal tile-score quantile only; the same tile threshold is applied after object/source max aggregation for operating metrics",
+  "primary_metric": "source_group_balanced_tile_roc_auc",
+  "bootstrap_iterations": 2000,
+  "test_is_locked": true
+}
