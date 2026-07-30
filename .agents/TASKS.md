@@ -76,5 +76,4 @@ strong augmentation снижает seed variance и улучшает object/sour
 - перенос/удаление/перезапись данных;
 - изменение существующих split;
 - test-driven tuning;
-- commit/push текущих agent files;
 - системные/Git/proxy/VPN configuration changes.

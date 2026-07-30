@@ -83,8 +83,10 @@ Optimizer steps не выравнивались:
 
 ## Git
 
+- Agent context введён опубликованным commit:
+  `22590ce Add agent project context and operating rules`.
 - Последний опубликованный data-study commit:
   `497612f Finalize FastFlow DeiT data study`.
-- На момент создания этих agent files рабочее дерево было чистым.
-- Новые agent files ещё не закоммичены и не отправлены: на commit/push
-  отдельного разрешения не было.
+- После отправки `22590ce` в `main` рабочее дерево было чистым.
+- Для push использовать прямой HTTPS URL из `AGENTS.md`; сохранённый `origin`
+  может указывать на SSH. Git/proxy/VPN settings не менять.
